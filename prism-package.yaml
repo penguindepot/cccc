@@ -3,8 +3,8 @@ version: 1.0.0
 description: Claude Code Command Center - Complete command and context management system for AI-assisted development
 author: CCCC Contributors
 license: MIT
-repository: github.com/jeunesse.paulien/cccc
-homepage: https://github.com/jeunesse.paulien/cccc
+repository: github.com/penguindepot/cccc
+homepage: https://github.com/penguindepot/cccc
 keywords:
   - claude-code
   - context-management
@@ -25,28 +25,31 @@ structure:
     - source: .claude/commands/cccc/
       dest: .claude/commands/cccc/
       pattern: "**/*.md"
-    
-    - source: .claude/commands/context/
-      dest: .claude/commands/context/
-      pattern: "**/*.md"
-    
-    - source: .claude/commands/utils/
-      dest: .claude/commands/utils/
-      pattern: "**/*.md"
   
   scripts:
     - source: .claude/scripts/cccc/
       dest: .claude/scripts/cccc/
       pattern: "**/*.sh"
-    
-    - source: .claude/scripts/utils/
-      dest: .claude/scripts/utils/
-      pattern: "**/*.sh"
+  
+  agents:
+    - source: .claude/agents/
+      dest: .claude/agents/
+      pattern: "cccc-*.md"
   
   rules:
-    - source: .claude/rules/
-      dest: .claude/rules/
+    - source: .claude/rules/cccc/
+      dest: .claude/rules/cccc/
       pattern: "*.md"
+  
+  documentation:
+    - source: .claude/docs/cccc/
+      dest: .claude/docs/cccc/
+      pattern: "**/*.md"
+  
+  claude_config:
+    - source: .claude/
+      dest: .claude/
+      pattern: "cccc.md"
 
 # Installation variants
 variants:
@@ -227,8 +230,8 @@ hooks:
         ;;
     esac
     echo ""
-    echo "📚 Documentation: https://github.com/jeunesse.paulien/cccc"
-    echo "🐛 Issues: https://github.com/jeunesse.paulien/cccc/issues"
+    echo "📚 Documentation: https://github.com/penguindepot/cccc"
+    echo "🐛 Issues: https://github.com/penguindepot/cccc/issues"
   
   preUninstall: |
     echo "🗑️  Preparing to uninstall CCCC..."
@@ -271,7 +274,7 @@ hooks:
     echo "  prism install cccc --variant=<minimal|standard|full>"
     echo ""
     echo "Thank you for using CCCC! 🚀"
-    echo "⭐ Star us on GitHub: https://github.com/jeunesse.paulien/cccc"
+    echo "⭐ Star us on GitHub: https://github.com/penguindepot/cccc"
 
 # Files to ignore when packaging
 ignore:

@@ -197,5 +197,5 @@ And unstructured feedback:
   - Platform Comment Posted: ✅
   - Last Sync: 2025-08-28T12:15:30Z
 
-🔗 View Updated Issue: https://gitlab.com/jeunesse.paulien/cccc/-/issues/35
+🔗 View Updated Issue: https://gitlab.com/penguindepot/cccc/-/issues/35
 ```

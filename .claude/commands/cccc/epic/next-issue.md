@@ -131,5 +131,5 @@ If the analysis fails:
   #38 conflicts with #41, #43 (avoid parallel work)
   
 📊 Progress: 0/12 issues completed (0%)
-🔗 Epic: https://gitlab.com/jeunesse.paulien/cccc/-/issues/34
+🔗 Epic: https://gitlab.com/penguindepot/cccc/-/issues/34
 ```

@@ -137,7 +137,7 @@ If the MR creation fails:
 ✅ MR #47 created successfully!
 
 🎉 GitLab MR Created Successfully!
-🔗 MR: https://gitlab.com/jeunesse.paulien/cccc/-/merge_requests/47
+🔗 MR: https://gitlab.com/penguindepot/cccc/-/merge_requests/47
    • Number: #47
    • Title: Issue #35: Create validation script framework
    • Source: issue/001.1

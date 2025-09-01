@@ -214,5 +214,5 @@ And categorizes unstructured feedback:
   - Run: /cccc:mr:fix test-prd 001.1 (to implement fixes)
   - Or review feedback manually in sync-state.yaml
 
-🔗 View MR: https://gitlab.com/jeunesse.paulien/cccc/-/merge_requests/2
+🔗 View MR: https://gitlab.com/penguindepot/cccc/-/merge_requests/2
 ```

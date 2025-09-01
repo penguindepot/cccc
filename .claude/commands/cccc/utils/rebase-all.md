@@ -52,9 +52,9 @@ fi
 
 # Call the rebase-all script
 if [ -n "$EPIC_FILTER" ]; then
-  .claude/scripts/cccc/utils/rebase-all.sh "$EPIC_FILTER" $DRY_RUN
+  .claude/scripts/cccc/rebase-all.sh "$EPIC_FILTER" $DRY_RUN
 else
-  .claude/scripts/cccc/utils/rebase-all.sh $DRY_RUN
+  .claude/scripts/cccc/rebase-all.sh $DRY_RUN
 fi
 ```
 

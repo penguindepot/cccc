@@ -1,0 +1,13 @@
+{
+  "version": "1.0.0",
+  "packages": {},
+  "registry": "https://registry.prism-claude.io",
+  "config": {
+    "defaultVariant": "standard",
+    "autoUpdate": false,
+    "verbose": false,
+    "confirmUninstall": true,
+    "keepBackups": true
+  },
+  "initialized": "2025-09-01T06:33:45.020Z"
+}

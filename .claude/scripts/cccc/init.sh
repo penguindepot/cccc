@@ -180,25 +180,13 @@ elif [ "$GIT_SYSTEM" = "gitlab" ]; then
   echo "📦 GitLab CLI ready (no additional extensions needed)"
 fi
 
-# Create directory structure
+# Create CCCC data directory structure
 echo ""
-echo "📁 Creating directory structure..."
+echo "📁 Creating CCCC data directories..."
 mkdir -p .cccc/prds
 mkdir -p .cccc/epics
 mkdir -p .cccc/context
-mkdir -p .claude/rules
-mkdir -p .claude/agents
-mkdir -p .claude/scripts/cccc
-echo "  ✅ Directories created"
-
-# Copy scripts if in main repo
-if [ -d "scripts/cccc" ] && [ ! "$(pwd)" = *"/.claude"* ]; then
-  echo ""
-  echo "📝 Copying CCCC scripts..."
-  cp -r scripts/cccc/* .claude/scripts/cccc/
-  chmod +x .claude/scripts/cccc/*.sh
-  echo "  ✅ Scripts copied and made executable"
-fi
+echo "  ✅ CCCC directories created"
 
 # Check for git
 echo ""
@@ -219,92 +207,6 @@ else
   echo "  Initialize with: git init"
 fi
 
-# Handle root CLAUDE.md - create if doesn't exist, copy from .claude/CLAUDE.md
-echo ""
-if [ ! -f "CLAUDE.md" ]; then
-  echo "📄 Creating root CLAUDE.md..."
-  if [ -f ".claude/CLAUDE.md" ]; then
-    # Copy content from .claude/CLAUDE.md
-    cp ".claude/CLAUDE.md" "CLAUDE.md"
-    echo "  ✅ CLAUDE.md created with content from .claude/CLAUDE.md"
-  else
-    # Create basic CLAUDE.md if .claude version doesn't exist
-    cat > CLAUDE.md << 'EOF'
-# CLAUDE.md
-
-> Think carefully and implement the most concise solution that changes as little code as possible.
-
-## Project-Specific Instructions
-
-Add your project-specific instructions here.
-
-## Testing
-
-Always run tests before committing:
-- `npm test` or equivalent for your stack
-
-## Code Style
-
-Follow existing patterns in the codebase.
-EOF
-    echo "  ✅ Basic CLAUDE.md created"
-  fi
-  
-  # Append CCCC rules if requested
-  if [ "$2" = "include-rules" ] || [[ "$*" == *"include-rules"* ]]; then
-    cat >> CLAUDE.md << 'EOF'
-
-## CCCC System Rules
-
-### Project Management
-- Always use CCCC commands for feature development
-- Create PRDs before implementation
-- Break down features into manageable tasks
-
-### Code Quality
-- Follow existing patterns strictly
-- No partial implementations
-- Test every function
-- Clean up dead code
-
-### Git Workflow
-- Use proper commit messages
-- Create feature branches
-- Submit PRs for review
-EOF
-    echo "  ✅ CCCC rules appended to CLAUDE.md"
-  fi
-else
-  echo "📄 Root CLAUDE.md already exists"
-  if [ "$2" = "include-rules" ] || [[ "$*" == *"include-rules"* ]]; then
-    # Check if CCCC rules already exist to avoid duplication
-    if ! grep -q "CCCC System Rules" CLAUDE.md; then
-      cat >> CLAUDE.md << 'EOF'
-
-## CCCC System Rules
-
-### Project Management
-- Always use CCCC commands for feature development
-- Create PRDs before implementation
-- Break down features into manageable tasks
-
-### Code Quality
-- Follow existing patterns strictly
-- No partial implementations
-- Test every function
-- Clean up dead code
-
-### Git Workflow
-- Use proper commit messages
-- Create feature branches
-- Submit PRs for review
-EOF
-      echo "  ✅ CCCC rules appended to existing CLAUDE.md"
-    else
-      echo "  ✅ CCCC rules already present in CLAUDE.md"
-    fi
-  fi
-fi
 
 # Detect appropriate git remote based on platform choice
 echo "🔍 Detecting git remote for $GIT_SYSTEM..."
@@ -369,10 +271,12 @@ echo "  YAML Parser: $(command -v yq >/dev/null && echo 'yq installed' || echo '
 echo "  Git Remote: $GIT_REMOTE (saved to .cccc/cccc-config.yml)"
 echo ""
 echo "🎯 Next Steps:"
-echo "  1. Create your first PRD: /cccc:prd:new <feature-name>"
-echo "  2. View help: /cccc:help"
-echo "  3. Check status: /cccc:status"
+echo "  1. Set up project context: /context:create"
+echo "  2. Create your first PRD: /cccc:prd:new <feature-name>"
+echo "  3. Start development workflow"
 echo ""
-echo "📚 Documentation: README.md"
+echo "💡 Tips:"
+echo "  - Use /context:prime at the start of each AI session"
+echo "  - PRISM has already configured your CLAUDE.md with CCCC rules"
 
 exit 0

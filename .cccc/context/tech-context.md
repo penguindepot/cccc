@@ -21,8 +21,7 @@ author: Claude Code CC System
 ### Development Environment
 - **Platform**: macOS (Darwin 24.5.0)
 - **IDE Integration**: Claude Code with IDE file monitoring
-- **Git Remote**: GitLab (gitlab.com:jeunesse.paulien/cccc.git)
-- **Working Directory**: /Users/paulienjeunesse/repos/gitlab/cccc
+- **Git Remote**: GitLab (gitlab.com:penguindepot/cccc.git)
 
 ### Claude Code Integration
 - **Command System**: Custom commands via .claude/commands/ directory

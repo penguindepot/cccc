@@ -232,4 +232,4 @@ MIT License - See LICENSE file for details
 ## Support
 
 For issues and feature requests, please use the GitLab issue tracker at:
-https://gitlab.com/jeunesse.paulien/cccc/-/issues
+https://gitlab.com/penguindepot/cccc/-/issues
