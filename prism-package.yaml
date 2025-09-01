@@ -1,0 +1,290 @@
+name: cccc
+version: 1.0.0
+description: Claude Code Command Center - Complete command and context management system for AI-assisted development
+author: CCCC Contributors
+license: MIT
+repository: github.com/jeunesse.paulien/cccc
+homepage: https://github.com/jeunesse.paulien/cccc
+keywords:
+  - claude-code
+  - context-management
+  - prd-workflow
+  - gitlab-integration
+  - github-integration
+  - productivity
+  - automation
+  - ai-development
+
+# Claude Code compatibility
+claudeCode:
+  minVersion: "1.0.0"
+
+# Package file structure
+structure:
+  commands:
+    - source: .claude/commands/cccc/
+      dest: .claude/commands/cccc/
+      pattern: "**/*.md"
+    
+    - source: .claude/commands/context/
+      dest: .claude/commands/context/
+      pattern: "**/*.md"
+    
+    - source: .claude/commands/utils/
+      dest: .claude/commands/utils/
+      pattern: "**/*.md"
+  
+  scripts:
+    - source: .claude/scripts/cccc/
+      dest: .claude/scripts/cccc/
+      pattern: "**/*.sh"
+    
+    - source: .claude/scripts/utils/
+      dest: .claude/scripts/utils/
+      pattern: "**/*.sh"
+  
+  rules:
+    - source: .claude/rules/
+      dest: .claude/rules/
+      pattern: "*.md"
+
+# Installation variants
+variants:
+  minimal:
+    description: Essential context management only (10 commands)
+    include:
+      - ".claude/commands/context/*"
+      - ".claude/commands/cccc/init.md"
+      - ".claude/scripts/cccc/init.sh"
+    exclude:
+      - ".claude/commands/cccc/epic/*"
+      - ".claude/commands/cccc/mr/*"
+      - ".claude/commands/cccc/issue/*"
+      - ".claude/commands/cccc/prd/*"
+  
+  standard:
+    description: Full workflows including PRD and Epic management (25 commands)
+    include:
+      - ".claude/commands/context/*"
+      - ".claude/commands/cccc/*"
+      - ".claude/commands/utils/*"
+      - ".claude/scripts/cccc/*"
+      - ".claude/scripts/utils/*"
+      - ".claude/rules/*"
+    exclude:
+      - ".claude/commands/cccc/mr/*"
+      - ".claude/commands/cccc/issue/mr.md"
+      - ".claude/scripts/cccc/mr-*.sh"
+      - ".claude/scripts/cccc/issue-mr.sh"
+  
+  full:
+    description: Complete system with MR workflows and GitLab/GitHub integration (40+ commands)
+    include:
+      - "**/*"
+    exclude: []
+
+# Dependencies
+dependencies:
+  system:
+    - name: git
+      required: true
+      version: ">=2.0.0"
+    
+    - name: yq
+      required: false
+      install: "brew install yq || apt-get install yq"
+      description: "YAML processing for analysis files"
+    
+    - name: jq
+      required: false
+      install: "brew install jq || apt-get install jq"
+      description: "JSON processing for CLI output"
+    
+    - name: gh
+      required: false
+      install: "brew install gh"
+      description: "GitHub CLI for GitHub integration"
+    
+    - name: glab
+      required: false
+      install: "brew install glab"
+      description: "GitLab CLI for GitLab integration"
+
+# Lifecycle hooks
+hooks:
+  preInstall: |
+    echo "🚀 Preparing CCCC installation..."
+    echo "📦 Variant: ${PRISM_VARIANT:-standard}"
+    
+    # Check if we're in a git repository
+    if ! git rev-parse --git-dir > /dev/null 2>&1; then
+      echo "⚠️  Not in a git repository. CCCC works best with git projects."
+      echo "   Initialize git: git init"
+    fi
+  
+  postInstall: |
+    # Create CCCC directory structure
+    mkdir -p .cccc/context .cccc/prds .cccc/epics .cccc_frozen
+    
+    # Create initial configuration
+    cat > .cccc/cccc-config.yml << EOF
+    # CCCC System Configuration
+    # This file is created by PRISM installation
+    git_platform: auto-detect
+    git_remote: origin
+    initialized_date: $(date -u +"%Y-%m-%dT%H:%M:%SZ")
+    prism_installed: true
+    prism_variant: ${PRISM_VARIANT:-standard}
+    prism_version: 1.0.0
+    EOF
+    
+    # Create .gitignore entries if .gitignore exists
+    if [ -f .gitignore ]; then
+      if ! grep -q "^\.cccc_frozen" .gitignore; then
+        echo "" >> .gitignore
+        echo "# CCCC system files" >> .gitignore
+        echo ".cccc_frozen/" >> .gitignore
+        echo "../epic-*" >> .gitignore
+      fi
+    fi
+    
+    echo ""
+    echo "✅ CCCC installed successfully!"
+    echo ""
+    echo "📋 Available commands for variant '${PRISM_VARIANT:-standard}':"
+    echo ""
+    
+    case "${PRISM_VARIANT:-standard}" in
+      "minimal")
+        echo "  📁 Context Management:"
+        echo "    /context:create   - Create comprehensive project context"
+        echo "    /context:prime    - Load context for new session"
+        echo "    /context:update   - Update context with recent changes"
+        echo "    /context:validate - Check context integrity"
+        echo "    /context:close    - Clean session termination"
+        echo ""
+        echo "  ⚙️  System:"
+        echo "    /cccc:init        - Initialize CCCC system"
+        ;;
+      "standard")
+        echo "  📁 Context Management (5 commands):"
+        echo "    /context:create, /context:prime, /context:update, /context:validate, /context:close"
+        echo ""
+        echo "  📋 PRD Workflow (2 commands):"
+        echo "    /cccc:prd:new     - Create new PRD with guided discovery"
+        echo "    /cccc:prd:parse   - Convert PRD to implementation epic"
+        echo ""
+        echo "  🎯 Epic Management (6 commands):"
+        echo "    /cccc:epic:analyze, /cccc:epic:decompose, /cccc:epic:sync"
+        echo "    /cccc:epic:next-issue, /cccc:epic:update-status, /cccc:epic:archive"
+        echo ""
+        echo "  🔄 Issue Management (2 commands):"
+        echo "    /cccc:issue:update - Sync issue content from platform"
+        echo ""
+        echo "  🛠️  Utilities (3 commands):"
+        echo "    /utils:push, /utils:rebase-all"
+        echo ""
+        echo "  ⚙️  System:"
+        echo "    /cccc:init        - Initialize CCCC system"
+        ;;
+      *)
+        echo "  🎯 Complete CCCC System - All 40+ commands available!"
+        echo ""
+        echo "  📁 Context Management (5 commands)"
+        echo "  📋 PRD Workflow (2 commands)"  
+        echo "  🎯 Epic Management (6 commands)"
+        echo "  🔄 Issue Management (3 commands)"
+        echo "  🔀 Merge Request Lifecycle (4 commands)"
+        echo "  🛠️  Utilities (3 commands)"
+        echo "  ⚙️  System (1 command)"
+        ;;
+    esac
+    
+    echo ""
+    echo "🎯 Next steps:"
+    echo "  1. Run: /cccc:init"
+    echo "     • Initialize CCCC system"
+    echo "     • Choose git platform (GitHub/GitLab)"
+    echo ""
+    echo "  2. Run: /context:create"
+    echo "     • Set up comprehensive project context"
+    echo "     • Never lose context between sessions"
+    echo ""
+    echo "  3. Start your workflow:"
+    case "${PRISM_VARIANT:-standard}" in
+      "minimal")
+        echo "     • Use /context:prime at start of each session"
+        echo "     • Use /context:update before ending sessions"
+        ;;
+      "standard")
+        echo "     • Create PRDs: /cccc:prd:new <feature-name>"
+        echo "     • Generate epics: /cccc:prd:parse <feature-name>"
+        echo "     • Manage issues: /cccc:epic:next-issue"
+        ;;
+      *)
+        echo "     • Complete workflow: PRD → Epic → Issues → MR → Review → Merge"
+        echo "     • Full GitLab/GitHub integration available"
+        ;;
+    esac
+    echo ""
+    echo "📚 Documentation: https://github.com/jeunesse.paulien/cccc"
+    echo "🐛 Issues: https://github.com/jeunesse.paulien/cccc/issues"
+  
+  preUninstall: |
+    echo "🗑️  Preparing to uninstall CCCC..."
+    
+    # Backup configuration and data
+    if [ -d ".cccc" ]; then
+      echo "💾 Backing up CCCC data to .cccc.backup..."
+      cp -r .cccc .cccc.backup
+    fi
+    
+    # Check for active work
+    EPIC_DIRS=$(ls -d ../epic-* 2>/dev/null | head -5)
+    if [ -n "$EPIC_DIRS" ]; then
+      echo "⚠️  Warning: Found active epic worktrees:"
+      echo "$EPIC_DIRS"
+      echo "   Consider cleaning these up manually or running /cccc:epic:archive"
+    fi
+    
+    # Check for uncommitted work
+    if [ -d ".git" ] && [ -n "$(git status --porcelain)" ]; then
+      echo "⚠️  Warning: Uncommitted changes detected"
+      echo "   Consider committing your work before uninstalling"
+    fi
+  
+  postUninstall: |
+    echo ""
+    echo "✅ CCCC has been uninstalled successfully"
+    echo ""
+    echo "💾 Your data has been preserved:"
+    echo "  • Project context → .cccc.backup/"
+    echo "  • PRDs and epics → .cccc.backup/"
+    echo "  • Configuration → .cccc.backup/cccc-config.yml"
+    echo ""
+    echo "🧹 Manual cleanup (optional):"
+    echo "  rm -rf .cccc.backup      # Remove backup"
+    echo "  rm -rf ../epic-*         # Remove epic worktrees"
+    echo "  # Edit .gitignore to remove CCCC entries"
+    echo ""
+    echo "🔄 To reinstall CCCC:"
+    echo "  prism install cccc --variant=<minimal|standard|full>"
+    echo ""
+    echo "Thank you for using CCCC! 🚀"
+    echo "⭐ Star us on GitHub: https://github.com/jeunesse.paulien/cccc"
+
+# Files to ignore when packaging
+ignore:
+  - node_modules
+  - .git
+  - .DS_Store
+  - "*.log"
+  - .env
+  - .env.local
+  - .cccc_frozen
+  - "../epic-*"
+  - .prism
+  - coverage
+  - dist
+  - build
+  - "*.backup"

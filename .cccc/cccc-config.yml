@@ -1,0 +1,6 @@
+# CCCC System Configuration
+# This file is created by /cccc:init and stores the chosen git platform and remote
+
+git_platform: gitlab
+git_remote: origin
+initialized_date: 2025-08-27T13:54:29Z

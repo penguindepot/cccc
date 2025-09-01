@@ -1,0 +1,13 @@
+# Archive metadata for epic test-prd
+archived_at: 2025-08-29T04:32:20Z
+archived_by: cccc:epic:archive
+epic_number: 34
+epic_url: https://gitlab.com/jeunesse.paulien/cccc/-/issues/34
+total_issues: 12
+completed_issues: 3
+auto_closed_issues: 9
+worktree_removed: true
+branches_deleted:
+  - epic/test-prd
+final_status: archived
+git_platform: gitlab

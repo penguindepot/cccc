@@ -1,0 +1,142 @@
+# .cccc/epics/test-prd/analysis.yaml
+epic: test-prd
+analyzed: 2025-08-28T02:31:24Z
+stats:
+  total_issues: 12
+  phases: 6
+  sequential_hours: 5.5
+  parallel_hours: 3.0
+  speedup: 1.83
+  ready_to_start: 2
+
+# Phase execution order
+phases:
+  1: [001.1, 002.1]
+  2: [001.2, 003.1, 003.2]
+  3: [004.1, 004.2, 004.3]
+  4: [005.1, 005.2]
+  5: [006.1]
+  6: [006.2]
+
+# All issue metadata
+issues:
+  001.1:
+    title: "Create validation script framework"
+    task: 1
+    phase: 1
+    estimate_minutes: 25
+    depends_on: []
+    conflicts_with: []
+    files_modified: 1
+    max_loc: 150
+    body_file: issues/001.1.md
+  001.2:
+    title: "Create workflow test runner"
+    task: 1
+    phase: 2
+    estimate_minutes: 20
+    depends_on: [001.1]
+    conflicts_with: []
+    files_modified: 1
+    max_loc: 120
+    body_file: issues/001.2.md
+  002.1:
+    title: "Standardize PRD template structure"
+    task: 2
+    phase: 1
+    estimate_minutes: 30
+    depends_on: []
+    conflicts_with: []
+    files_modified: 1
+    max_loc: 200
+    body_file: issues/002.1.md
+  003.1:
+    title: "Improve new command validation logic"
+    task: 3
+    phase: 2
+    estimate_minutes: 35
+    depends_on: [002.1]
+    conflicts_with: [004.2, 005.1]
+    files_modified: 1
+    max_loc: 180
+    body_file: issues/003.1.md
+  003.2:
+    title: "Improve parse command validation logic"
+    task: 3
+    phase: 2
+    estimate_minutes: 25
+    depends_on: [002.1]
+    conflicts_with: [004.3, 005.1]
+    files_modified: 1
+    max_loc: 150
+    body_file: issues/003.2.md
+  004.1:
+    title: "Create error recovery script"
+    task: 4
+    phase: 3
+    estimate_minutes: 30
+    depends_on: [001.2]
+    conflicts_with: []
+    files_modified: 1
+    max_loc: 200
+    body_file: issues/004.1.md
+  004.2:
+    title: "Add error handling to new command"
+    task: 4
+    phase: 3
+    estimate_minutes: 30
+    depends_on: [003.1]
+    conflicts_with: [005.1]
+    files_modified: 1
+    max_loc: 150
+    body_file: issues/004.2.md
+  004.3:
+    title: "Add error handling to parse command"
+    task: 4
+    phase: 3
+    estimate_minutes: 30
+    depends_on: [003.2]
+    conflicts_with: [005.1]
+    files_modified: 1
+    max_loc: 150
+    body_file: issues/004.3.md
+  005.1:
+    title: "Update command inline documentation"
+    task: 5
+    phase: 4
+    estimate_minutes: 25
+    depends_on: [004.2, 004.3]
+    conflicts_with: []
+    files_modified: 2
+    max_loc: 100
+    body_file: issues/005.1.md
+  005.2:
+    title: "Update COMMANDS.md with workflow examples"
+    task: 5
+    phase: 4
+    estimate_minutes: 20
+    depends_on: [002.1, 004.2, 004.3]
+    conflicts_with: []
+    files_modified: 1
+    max_loc: 300
+    body_file: issues/005.2.md
+  006.1:
+    title: "Create end-to-end test script"
+    task: 6
+    phase: 5
+    estimate_minutes: 35
+    depends_on: [001.1, 001.2, 002.1, 003.1, 003.2, 004.1, 004.2, 004.3]
+    conflicts_with: []
+    files_modified: 1
+    max_loc: 250
+    body_file: issues/006.1.md
+  006.2:
+    title: "Add performance benchmarks"
+    task: 6
+    phase: 6
+    estimate_minutes: 25
+    depends_on: [006.1]
+    conflicts_with: []
+    files_modified: 1
+    max_loc: 150
+    body_file: issues/006.2.md
