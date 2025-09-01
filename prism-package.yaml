@@ -1,5 +1,5 @@
 name: cccc
-version: 1.0.0
+version: 1.1.0
 description: Claude Code Command Center - Complete command and context management system for AI-assisted development
 author: CCCC Contributors
 license: MIT
@@ -138,7 +138,7 @@ hooks:
     initialized_date: $(date -u +"%Y-%m-%dT%H:%M:%SZ")
     prism_installed: true
     prism_variant: ${PRISM_VARIANT:-standard}
-    prism_version: 1.0.0
+    prism_version: 1.1.0
     EOF
     
     # Create .gitignore entries if .gitignore exists

@@ -1,14 +1,14 @@
 ---
 created: 2025-08-27T15:01:27Z
-last_updated: 2025-08-29T08:29:00Z
-version: 1.1
+last_updated: 2025-09-01T16:35:00Z
+version: 1.2
 author: Claude Code CC System
 ---
 
 # Product Context
 
 ## Product Vision
-CCCC (Claude Code Command Center) is a comprehensive command and context management system designed to enhance Claude Code's capabilities for complex project development, with dual GitLab/GitHub integration and persistent session management. Currently in Phase 1.5 optimization focused on performance improvements and 60-80% context reduction through intelligent operation classification and bash separation.
+CCCC (Claude Code Command Center) is a comprehensive command and context management system distributed as a PRISM package that enhances Claude Code's capabilities for complex project development, with dual GitLab/GitHub integration and persistent session management. The product is now packaged for widespread distribution with three installation variants (minimal, standard, full) to meet different organizational needs. Currently in Phase 1.5 optimization focused on performance improvements and 60-80% context reduction through intelligent operation classification and bash separation.
 
 ## Target Users
 
@@ -25,9 +25,14 @@ CCCC (Claude Code Command Center) is a comprehensive command and context managem
 - **Use Cases**: Creating PRDs, tracking implementation progress
 
 #### 3. DevOps Engineers
-- **Needs**: Automation tools, GitLab integration
-- **Pain Points**: Manual processes, lack of structured workflows
-- **Use Cases**: CI/CD setup, deployment automation
+- **Needs**: Automation tools, GitLab/GitHub integration, standardized deployment
+- **Pain Points**: Manual processes, lack of structured workflows, inconsistent tooling across teams
+- **Use Cases**: CI/CD setup, deployment automation, team workflow standardization
+
+#### 4. Engineering Teams
+- **Needs**: Consistent development workflows, easy onboarding, standardized tooling
+- **Pain Points**: Varied development practices, difficult tool adoption, setup complexity
+- **Use Cases**: Team standardization, new developer onboarding, workflow consistency
 
 ## Core Requirements
 
@@ -54,11 +59,19 @@ CCCC (Claude Code Command Center) is a comprehensive command and context managem
 
 ### Non-Functional Requirements
 
+#### Distribution & Installation
+- PRISM package-based distribution with automated installation
+- Three installation variants for different use cases (minimal/standard/full)
+- Automated dependency management (yq, jq, gh, glab)
+- Pre/post installation hooks with validation and setup
+- Easy uninstallation with data preservation
+
 #### Usability
 - Simple command interface
 - Clear error messages
 - Helpful documentation
 - Minimal learning curve
+- Flexible installation options based on project needs
 
 #### Performance
 - Fast command execution (<30 seconds)
@@ -92,7 +105,14 @@ CCCC (Claude Code Command Center) is a comprehensive command and context managem
 3. System generates implementation epics
 4. Developer begins implementation
 
-### UC4: Ending Development Session
+### UC4: Installing CCCC System
+1. Team lead installs via `prism install cccc --variant=standard`
+2. System automatically creates directory structure
+3. Dependencies (yq, jq, gh/glab) installed automatically
+4. Configuration files created with project metadata
+5. Team can immediately start using commands
+
+### UC5: Ending Development Session
 1. Developer completes work
 2. Runs `/context:update` to save progress
 3. System updates relevant context files
@@ -136,12 +156,16 @@ CCCC (Claude Code Command Center) is a comprehensive command and context managem
 
 ### Unique Value Propositions
 1. **Session Persistence**: Full context preservation between Claude Code sessions
-2. **GitLab Native**: Deep integration with GitLab workflows
-3. **Structured Workflows**: PRD to implementation pipeline
-4. **Extensible Framework**: Easy to add new commands
+2. **Multi-Platform Integration**: Deep integration with both GitLab and GitHub workflows
+3. **Structured Workflows**: PRD to implementation pipeline with complete lifecycle management
+4. **Extensible Framework**: Easy to add new commands and customize workflows
 5. **Validation-First**: Comprehensive checks at every step
+6. **Easy Distribution**: PRISM package system with flexible installation variants
+7. **Automated Setup**: Zero-configuration installation with dependency management
 
 ### Comparison to Alternatives
-- **VS Code Extensions**: More AI-native, better context understanding
-- **Shell Scripts**: Better error handling, structured documentation
-- **Manual Processes**: Automated workflows, consistency enforcement
+- **VS Code Extensions**: More AI-native, better context understanding, Claude Code integration
+- **Shell Scripts**: Better error handling, structured documentation, package distribution
+- **Manual Processes**: Automated workflows, consistency enforcement, team standardization
+- **Other Package Managers**: PRISM-native integration, Claude Code specific optimization
+- **Custom Internal Tools**: Standardized, tested, community-supported solution

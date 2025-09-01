@@ -1,7 +1,7 @@
 ---
 created: 2025-08-27T15:01:27Z
-last_updated: 2025-08-27T15:01:27Z
-version: 1.0
+last_updated: 2025-09-01T16:35:00Z
+version: 1.1
 author: Claude Code CC System
 ---
 
@@ -18,12 +18,15 @@ author: Claude Code CC System
 
 #### Documentation
 - **System Docs**: UPPERCASE (e.g., `CLAUDE.md`, `AGENTS.md`, `README.md`)
+- **Package Files**: Kebab-case YAML (e.g., `prism-package.yaml`)
 - **Context Files**: Kebab-case (e.g., `project-overview.md`, `tech-context.md`)
 - **PRDs**: Feature-based kebab-case (e.g., `user-auth.md`, `payment-v2.md`)
+- **Config Files**: Kebab-case with extension (e.g., `cccc-config.yml`, `sync-state.yaml`)
 
 #### Directories
-- **Hidden Dirs**: Lowercase with dot prefix (e.g., `.cccc/`, `.claude/`)
+- **Hidden Dirs**: Lowercase with dot prefix (e.g., `.cccc/`, `.claude/`, `.prism/`)
 - **Subdirs**: Lowercase, no spaces (e.g., `context/`, `prds/`, `commands/`)
+- **Archive Dirs**: Descriptive suffix (e.g., `.cccc_frozen/`, `.backup/`)
 
 ### Markdown Formatting
 
@@ -51,6 +54,37 @@ author: Claude Code CC System       # System identifier
 - **Bold Text**: Use `**text**` for emphasis
 - **Code Inline**: Use \`backticks\` for code
 - **Code Blocks**: Use triple backticks with language identifier
+
+### PRISM Package Standards
+
+#### Package Definition Structure
+```yaml
+# prism-package.yaml structure
+name: package-name
+version: semantic-version  
+description: clear-description
+author: author-name
+license: license-type
+repository: repo-url
+keywords: [relevant, tags]
+
+claudeCode:
+  minVersion: minimum-version
+
+structure:
+  commands: [mapping-definitions]
+  scripts: [mapping-definitions]
+  agents: [mapping-definitions]
+
+variants:
+  minimal: [variant-definition]
+  standard: [variant-definition]
+  full: [variant-definition]
+
+hooks:
+  preInstall: |script|
+  postInstall: |script|
+```
 
 ### Command Structure Pattern
 
@@ -103,6 +137,19 @@ Brief description of what this command does.
 - 🟠 Stale (8-14 days)
 - 🔴 Very Stale (>14 days)
 
+### Package Distribution Standards
+
+#### Installation Variants
+- **minimal**: Essential context management (10 commands)
+- **standard**: Full workflows excluding MR management (25 commands)
+- **full**: Complete system with all features (40+ commands)
+
+#### Dependency Management
+- System dependencies defined in `dependencies.system`
+- Auto-installation via package hooks
+- Version requirements clearly specified
+- Graceful degradation when optional tools missing
+
 ### Git Commit Messages
 
 #### Format
@@ -123,6 +170,7 @@ Co-Authored-By: Claude <noreply@anthropic.com>
 - `refactor`: Code restructuring
 - `test`: Test additions/changes
 - `chore`: Maintenance tasks
+- `package`: PRISM package updates
 
 ### Bash Command Standards
 
@@ -259,6 +307,23 @@ test_<command>_<scenario>_<expected_outcome>
 - Max frontmatter fields: 10
 - Command timeout: 30 seconds default
 
+### Package Lifecycle Standards
+
+#### Installation Process
+1. Pre-install validation (git repo, permissions)
+2. Directory structure creation (.cccc/, .cccc_frozen/)
+3. Configuration file generation (cccc-config.yml)
+4. Dependency installation (yq, jq, gh/glab)
+5. .gitignore updates for CCCC files
+6. Post-install validation and guidance
+
+#### Uninstallation Process
+1. Data backup creation (.cccc.backup/)
+2. Active work detection and warnings
+3. File removal with confirmation
+4. Manual cleanup instructions
+5. Registry cleanup preparation
+
 ### Security Practices
 
 #### File Operations
@@ -272,3 +337,4 @@ test_<command>_<scenario>_<expected_outcome>
 - No credentials in context files
 - Local storage only
 - Clear error messages without exposing internals
+- Package distribution security validation

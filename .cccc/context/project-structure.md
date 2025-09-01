@@ -1,7 +1,7 @@
 ---
 created: 2025-08-27T15:01:27Z
-last_updated: 2025-09-01T14:25:22Z
-version: 2.6
+last_updated: 2025-09-01T16:35:00Z
+version: 2.7
 author: Claude Code CC System
 ---
 
@@ -12,9 +12,10 @@ author: Claude Code CC System
 ```
 cccc/
 ├── .cccc/               # CCCC-specific data and configuration
-│   ├── cccc-config.yml  # Main CCCC configuration file
+│   ├── cccc-config.yml  # Main CCCC configuration file (created by PRISM)
 │   ├── context/         # Project context documentation (9 files)
 │   ├── epics/           # Generated technical epics (currently empty - test-prd archived)
+│   └── prds/            # Product Requirements Documents
 ├── .cccc_frozen/        # Archived completed epics and PRDs
 │   └── test-prd/        # ARCHIVED: Complete test-prd epic documentation
 │   │       ├── 001-006.md         # Individual task files
@@ -40,7 +41,13 @@ cccc/
 │   │           └── summary.md     # Human-readable analysis summary
 │   └── prds/            # Product Requirements Documents
 ├── .claude/             # Claude Code configuration
+│   ├── cccc.md          # CCCC package configuration
+│   ├── settings.local.json # Local Claude Code settings
 │   ├── agents/          # Specialized sub-agent definitions
+│   │   ├── cccc-code-analyzer.md    # Code analysis sub-agent
+│   │   ├── cccc-file-analyzer.md    # File analysis sub-agent
+│   │   ├── cccc-parallel-worker.md  # Parallel processing agent
+│   │   └── cccc-test-runner.md      # Test execution agent
 │   ├── commands/        # Custom command definitions
 │   │   ├── cccc/        # CCCC-specific commands
 │   │   │   ├── epic/    # Epic management commands (decompose, analyze, sync, next-issue, update-status, archive)
@@ -70,13 +77,16 @@ cccc/
 │       └── utils/        # NEW: Utility scripts
 │           └── rebase-all.sh        # NEW: Branch hierarchy maintenance across all worktrees
 ├── .git/                # Git repository data
+├── .prism/              # PRISM package manager data
 ├── AGENTS.md            # Agent configuration documentation
 ├── ARCHITECTURE.md      # System architecture and design patterns documentation
+├── cccc-1.0.0.tar.gz    # PRISM package archive
 ├── CLAUDE.md            # Claude Code behavior guidelines
 ├── COMMANDS.md          # Command system documentation
 ├── CONTEXT-STRATEGY.md  # Context management and optimization strategies
 ├── PERFORMANCE.md       # Performance optimization approaches and metrics
-├── README.md            # Project documentation (GitLab template)
+├── prism-package.yaml   # PRISM package definition with variants and hooks
+├── README.md            # Project documentation with PRISM installation instructions
 └── ROADMAP.md           # Project roadmap, milestones, and future development plans
 ```
 
@@ -112,13 +122,15 @@ Archive storage for completed work:
 - Includes sync-state.yaml files with platform issue mappings
 
 ### Root Level Files
+- **prism-package.yaml**: PRISM package definition with three variants (minimal/standard/full) and lifecycle hooks
+- **cccc-1.0.0.tar.gz**: Packaged PRISM distribution archive
 - **ARCHITECTURE.md**: System architecture and design patterns documentation
 - **CLAUDE.md**: Defines AI behavior, tone, and absolute rules
 - **AGENTS.md**: Configurations for specialized sub-agents
 - **COMMANDS.md**: Index and documentation of available commands
 - **CONTEXT-STRATEGY.md**: Context management and optimization strategies
 - **PERFORMANCE.md**: Performance optimization approaches and metrics
-- **README.md**: Standard GitLab project readme (to be customized)
+- **README.md**: Updated with PRISM installation instructions and variant descriptions
 - **ROADMAP.md**: Project roadmap, milestones, and future development plans
 
 ## Module Organization
@@ -129,7 +141,9 @@ The project follows a command-based architecture where:
 - PRDs drive feature development through structured documentation
 
 ## Integration Points
-- **Git Integration**: Full git repository with GitLab remote
+- **PRISM Package System**: Distributable package with automated installation and dependency management
+- **Git Integration**: Full git repository with GitLab/GitHub remote support
 - **Claude Code**: Native integration through .claude directory
 - **Command System**: Extensible command framework via markdown definitions
 - **Context System**: Persistent state management across sessions
+- **Dependency Management**: Automated installation of yq, jq, gh, glab tools via PRISM hooks

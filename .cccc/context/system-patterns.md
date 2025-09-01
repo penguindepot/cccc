@@ -1,7 +1,7 @@
 ---
 created: 2025-08-27T15:01:27Z
-last_updated: 2025-09-01T14:25:22Z
-version: 3.0
+last_updated: 2025-09-01T16:35:00Z
+version: 3.1
 author: Claude Code CC System
 ---
 
@@ -9,8 +9,16 @@ author: Claude Code CC System
 
 ## Architectural Patterns
 
-### Branch-Based Development Pattern (New Architecture)
-**Major System Evolution**: Transitioned from complex worktree-based to streamlined branch-based development:
+### PRISM Package Architecture Pattern (New)
+**Distribution System**: CCCC is now architected as a comprehensive PRISM package with flexible installation:
+- **Three Installation Variants**: Minimal (10 commands), Standard (25 commands), Full (40+ commands)
+- **Automated Setup**: Pre/post installation hooks with dependency management
+- **Lifecycle Management**: Complete package lifecycle with backup and cleanup capabilities
+- **Configuration Integration**: Automatic creation of .cccc/cccc-config.yml with PRISM metadata
+- **Benefits**: Easy distribution, flexible deployment, standardized installation process
+
+### Branch-Based Development Pattern (Established Architecture)
+**Streamlined Development**: Transitioned from complex worktree-based to streamlined branch-based development:
 - **Direct Branch Operations**: Issues implement directly on branches without worktree complexity
 - **Simplified Workflow**: issue:start command replaces mr:start for immediate branch-based development
 - **Reduced Overhead**: Eliminated worktree orchestration while maintaining all core functionality
@@ -65,10 +73,18 @@ author: System identifier
 - **Benefits**: Direct data access, no parsing timeouts, stable filenames
 - **Pre-calculated Dependencies**: All cross-references computed before issue creation
 
+### PRISM Package Definition Pattern
+- **prism-package.yaml**: Complete package specification with variants, hooks, and dependencies
+- **Structure Mapping**: File-based installation mapping for commands, scripts, agents, and documentation
+- **Lifecycle Hooks**: Pre/post install/uninstall automation with safety checks and backups
+- **Dependency Management**: Automated installation of system tools (yq, jq, gh, glab)
+- **Benefits**: Standardized distribution, automated setup, flexible installation options
+
 ### Markdown as Configuration
 - **Rationale**: Human-readable, version-controllable, IDE-friendly
 - **Benefits**: No compilation, easy editing, built-in documentation
 - **Trade-offs**: Limited type safety, requires parsing (now minimized with YAML hybrid)
+- **PRISM Integration**: Packages markdown-based command definitions with automated installation
 
 ### File-Based State Management
 - **Approach**: Separate files for different context aspects
@@ -257,20 +273,31 @@ User Input → Preflight → Validation → Execution → Verification → Summa
 - Abstracted CLI operations (gh/glab) with consistent interfaces
 - Shared rule patterns for common operations
 - Error handling specific to each platform's limitations
+- **PRISM Integration**: Automated detection and installation of platform-specific CLI tools
 
 ## Scalability Patterns
+
+### PRISM Package Distribution
+- **Variant-Based Scaling**: Install only needed functionality (minimal/standard/full)
+- **Dependency Resolution**: Automatic tool installation based on variant needs
+- **Registry Integration**: Prepared for PRISM package registry distribution
+- **Multi-Package Support**: Foundation for package ecosystem with dependencies
+- **Benefits**: Scales from simple context management to full development workflows
 
 ### Modular Command Structure
 - Commands organized by namespace
 - Independent execution paths
 - Shared rules for common functionality
+- **Package Integration**: Commands distributed as cohesive package units
 
 ### Incremental Updates
 - Only update changed sections
 - Preserve timestamps for unchanged content
 - Surgical modifications over regeneration
+- **Package Lifecycle**: Automated updates through PRISM package management
 
 ### Parallel Processing
 - Multiple file operations in parallel
 - Batch validation for efficiency
 - Progress tracking for long operations
+- **Installation Optimization**: Parallel dependency installation through PRISM hooks

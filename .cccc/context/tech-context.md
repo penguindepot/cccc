@@ -1,7 +1,7 @@
 ---
 created: 2025-08-27T15:01:27Z
-last_updated: 2025-08-29T08:29:00Z
-version: 1.5
+last_updated: 2025-09-01T16:35:00Z
+version: 1.6
 author: Claude Code CC System
 ---
 
@@ -10,13 +10,15 @@ author: Claude Code CC System
 ## Technology Stack
 
 ### Core Technologies
-- **Version Control**: Git with GitLab remote repository
+- **Version Control**: Git with GitLab/GitHub remote repository support
+- **Package System**: PRISM package manager for distribution and installation
 - **Multi-Platform Support**: GitHub and GitLab integration with platform detection
 - **Primary Language**: Markdown-based configuration and documentation
 - **Data Format**: YAML for metadata and relationships (30-40% token efficiency over JSON)
 - **Command Framework**: Claude Code command system using markdown definitions
 - **Shell Scripting**: Bash for automation and system interactions
 - **Hybrid Storage**: YAML for machine data + Markdown for human content
+- **Distribution**: PRISM package with variants (minimal, standard, full)
 
 ### Development Environment
 - **Platform**: macOS (Darwin 24.5.0)
@@ -32,16 +34,17 @@ author: Claude Code CC System
 ## Dependencies
 
 ### System Requirements
-- Git for version control
+- Git for version control (>=2.0.0)
 - Bash shell for command execution
 - File system with write permissions
-- Claude Code CLI tool
+- Claude Code CLI tool (>=1.0.0)
+- PRISM package manager for installation
 
 ### Platform CLI Tools
-- **GitHub CLI** (`gh`): For GitHub issue and repository operations
-- **GitLab CLI** (`glab`): For GitLab issue and repository operations
-- **yq**: YAML processing for analysis.yaml parsing (NEW: auto-installed via init script)
-- **jq**: JSON processing for CLI output parsing (required for GitLab operations)
+- **GitHub CLI** (`gh`): For GitHub issue and repository operations (auto-installed)
+- **GitLab CLI** (`glab`): For GitLab issue and repository operations (auto-installed)
+- **yq**: YAML processing for analysis.yaml parsing (auto-installed via PRISM hooks)
+- **jq**: JSON processing for CLI output parsing (auto-installed via PRISM hooks)
 
 ### Command Dependencies
 - **DateTime Rule**: Standardized timestamp generation using system clock
@@ -63,9 +66,12 @@ author: Claude Code CC System
 
 ### Configuration Files
 - **CLAUDE.md**: AI behavior configuration
+- **prism-package.yaml**: PRISM package definition with variants and hooks
+- **.cccc/cccc-config.yml**: CCCC system configuration (created by PRISM)
 - **AGENTS.md**: Sub-agent definitions
 - **COMMANDS.md**: Command registry
 - **.claude/rules/**: Shared rule definitions
+- **.gitignore**: CCCC-specific ignore patterns (auto-updated)
 
 ## Architecture Patterns
 
@@ -115,6 +121,9 @@ Product development lifecycle:
 - MCP server compatibility for enhanced persistence
 - Claude Desktop thread continuity support
 - Extensible command framework for new features
+- **PRISM Package System**: Distributable package with lifecycle management
+- **Installation Variants**: Flexible deployment options (minimal/standard/full)
+- **Dependency Management**: Automated installation of required tools
 - **Performance Analytics**: Context usage tracking and efficiency reporting
 - **Agent Communication**: Minimal context passing between parent and child agents
 - **Platform Integration**: Dual GitHub/GitLab support with optimized API usage
