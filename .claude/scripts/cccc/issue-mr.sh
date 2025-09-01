@@ -22,14 +22,14 @@ echo "🔧 Platform: $git_platform"
 echo "🔧 Remote: $git_remote"
 echo ""
 
-# Check for epic worktree
-worktree_path="../epic-$EPIC_NAME"
-if ! git worktree list | grep -q "$worktree_path"; then
-  echo "❌ Epic worktree not found: $worktree_path"
-  echo "Run: /cccc:epic:sync $EPIC_NAME"
+# Check if issue branch exists
+issue_branch="issue/$ISSUE_ID"
+if ! git branch | grep -q "$issue_branch"; then
+  echo "❌ Issue branch not found: $issue_branch"
+  echo "Run: /cccc:issue:start $EPIC_NAME $ISSUE_ID"
   exit 1
 fi
-echo "✅ Epic worktree found: $worktree_path"
+echo "✅ Issue branch found: $issue_branch"
 
 # Get issue details from analysis
 issue_title=$(yq ".issues.\"$ISSUE_ID\".title" .cccc/epics/$EPIC_NAME/analysis.yaml | tr -d '"')
@@ -51,11 +51,7 @@ fi
 echo "🏷️  Platform issue number: #$issue_number"
 echo ""
 
-# Navigate to epic worktree
-cd "$worktree_path" || {
-  echo "❌ Failed to navigate to worktree: $worktree_path"
-  exit 1
-}
+# Work in main repository (no worktree navigation needed)
 
 echo "🔄 Updating and rebasing branches..."
 
@@ -66,9 +62,9 @@ git fetch "$git_remote" || {
   exit 1
 }
 
-# The worktree's main branch is the epic branch - rebase it on main repo's main
+# Rebase epic branch on main
 epic_branch="epic/$EPIC_NAME"
-echo "🔄 Rebasing worktree main branch (epic/$EPIC_NAME) on $git_remote/main..."
+echo "🔄 Rebasing epic branch ($epic_branch) on $git_remote/main..."
 git checkout "$epic_branch" >/dev/null 2>&1 || {
   echo "❌ Failed to checkout $epic_branch"
   exit 1
@@ -79,7 +75,7 @@ if ! git rebase "$git_remote/main"; then
   echo "Resolve conflicts manually and try again"
   exit 1
 fi
-echo "✅ Worktree main branch (epic/$EPIC_NAME) rebased successfully"
+echo "✅ Epic branch rebased successfully"
 
 # Push the rebased epic branch to keep remote synchronized
 echo "📤 Pushing rebased epic branch to remote..."
@@ -89,17 +85,13 @@ else
   echo "⚠️ Failed to push epic branch, continuing with MR creation..."
 fi
 
-# Create or checkout issue branch
-issue_branch="issue/$ISSUE_ID"
-echo "🌿 Creating/updating issue branch: $issue_branch"
-
-if git show-ref --verify --quiet "refs/heads/$issue_branch"; then
-  echo "   Checking out existing branch..."
-  git checkout "$issue_branch" >/dev/null 2>&1
-else
-  echo "   Creating new branch from epic..."
-  git checkout -b "$issue_branch" >/dev/null 2>&1
-fi
+# Checkout existing issue branch (should already exist from /cccc:issue:start)
+echo "🌿 Checking out issue branch: $issue_branch"
+git checkout "$issue_branch" >/dev/null 2>&1 || {
+  echo "❌ Failed to checkout issue branch: $issue_branch"
+  echo "Ensure issue branch was created with /cccc:issue:start $EPIC_NAME $ISSUE_ID"
+  exit 1
+}
 
 # Rebase issue branch on epic branch
 echo "🔄 Rebasing issue branch on epic..."
@@ -119,12 +111,12 @@ else
 fi
 echo ""
 
-# Get issue content for MR description (from main repo)
+# Get issue content for MR description
 echo "📖 Reading issue content..."
-main_repo_issue_file="../../.cccc/epics/$EPIC_NAME/$issue_body_file"
-if [ -f "$main_repo_issue_file" ]; then
-  # Get first few lines after frontmatter for description
-  issue_description=$(sed '1,/^---$/d; /^---$/,$d' "$main_repo_issue_file" | head -10 | sed '/^$/d' | head -5)
+issue_file_path=".cccc/epics/$EPIC_NAME/$issue_body_file"
+if [ -f "$issue_file_path" ]; then
+  # Get first few lines for description
+  issue_description=$(head -10 "$issue_file_path" | sed '/^$/d' | head -5)
 else
   issue_description="Implementation of issue $ISSUE_ID"
 fi
@@ -220,8 +212,7 @@ echo "   URL: $mr_url"
 echo "   Number: #$mr_number"
 echo ""
 
-# Return to main repo and update sync-state.yaml
-cd - > /dev/null
+# Update sync-state.yaml (already in main repo)
 
 echo "📁 Updating sync-state.yaml..."
 sync_state_file=".cccc/epics/$EPIC_NAME/sync-state.yaml"
@@ -270,6 +261,5 @@ echo "🔗 Next Steps:"
 echo "   • Review and provide feedback on the MR/PR"
 echo "   • Use /cccc:issue:update $EPIC_NAME $ISSUE_ID to sync comments (if needed)"
 echo "   • Merge when ready"
-echo "   • Continue work in epic worktree: $worktree_path"
 
 exit 0

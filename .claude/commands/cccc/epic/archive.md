@@ -4,7 +4,7 @@ allowed-tools: Bash, Read, Write, LS
 
 # cccc:epic:archive
 
-Archive a completed epic by closing all remaining open issues, removing worktrees and branches, and preserving all documentation in the .cccc_frozen directory.
+Archive a completed epic by closing all remaining open issues, removing branches, and preserving all documentation in the .cccc_frozen directory.
 
 ## Usage
 ```
@@ -22,7 +22,7 @@ These rules must be loaded and followed:
 - `.claude/rules/datetime.md` - For getting real current date/time
 - `.claude/rules/github-operations.md` - For GitHub CLI operations
 - `.claude/rules/gitlab-operations.md` - For GitLab CLI operations
-- `.claude/rules/worktree-operations.md` - For Git worktree management
+- `.claude/rules/cccc/branch-operations.md` - For branch management and cleanup
 
 ## Preflight Checklist
 
@@ -159,7 +159,7 @@ If the epic archive fails:
 - Check that you have permissions to close issues on the platform
 - Verify the epic and all issues exist on the platform
 - Ensure platform CLI is properly authenticated
-- Check that the worktree is accessible and not in use
+- Check that the epic branch exists and can be deleted
 - Verify you have write permissions to create .cccc_frozen directory
 - Use `--dry-run` to preview changes before executing
 - Use `--force` flag only if you're certain it's safe
@@ -168,7 +168,7 @@ If the epic archive fails:
 
 1. **Destructive Operation**: Archives move files and close platform issues
 2. **Platform Integration**: Closes all open issues and the epic on GitLab/GitHub
-3. **Worktree Cleanup**: Removes the epic worktree and all branches
+3. **Branch Cleanup**: Removes all epic and issue branches
 4. **Documentation Preserved**: All files moved to .cccc_frozen for safekeeping
 5. **Audit Trail**: Archive metadata tracks what was closed and when
 6. **Dry-run Safe**: Use --dry-run to preview without making changes
@@ -184,7 +184,7 @@ If the epic archive fails:
     - Closing issue #36: Create unit test framework... ✅
     - Closing issue #38: Add integration tests... ✅
   📝 Closing epic issue #34... ✅
-  🌿 Removing worktree ../epic-test-prd... ✅
+  🌿 Removing branches... ✅
   🌐 Deleting remote branches...
     - Deleting epic/test-prd... ✅
     - Deleting issue branches... ✅
@@ -200,7 +200,6 @@ If the epic archive fails:
   - Issues: 12 total (10 were already closed, 2 auto-closed)
   - PRD: Moved to .cccc_frozen/prds/test-prd.md
   - Epic Data: Moved to .cccc_frozen/epics/test-prd/
-  - Worktree: ../epic-test-prd (removed)
   - Branches: 13 branches deleted (1 epic + 12 issues)
   - Status: Archived at 2025-08-29T12:00:00Z
 
@@ -220,7 +219,6 @@ If the epic archive fails:
     - Issue #36: Create unit test framework
     - Issue #38: Add integration tests
   ❌ Close epic issue #34: Epic: test-prd
-  ❌ Remove worktree: ../epic-test-prd
   ❌ Delete 13 remote branches
   ❌ Move .cccc/epics/test-prd → .cccc_frozen/epics/test-prd
   ❌ Move .cccc/prds/test-prd.md → .cccc_frozen/prds/test-prd.md
@@ -245,7 +243,6 @@ If the epic archive fails:
 ⚠️ This will permanently:
   - Close 2 open issues on the platform
   - Close epic issue #34 on the platform
-  - Delete the ../epic-test-prd worktree
   - Delete 13 remote branches
   - Move all files to .cccc_frozen
 

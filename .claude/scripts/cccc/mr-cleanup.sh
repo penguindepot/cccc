@@ -35,36 +35,16 @@ if [ "$mr_number" = "null" ] || [ -z "$mr_number" ] || [ "$mr_url" = "null" ]; t
     
     # Only clean up local branch if it exists
     issue_branch="issue/$ISSUE_ID"
-    worktree_path="../epic-$EPIC_NAME"
     
-    if [ -d "$worktree_path" ]; then
-        cd "$worktree_path" 2>/dev/null || true
-        if git branch | grep -q "$issue_branch" 2>/dev/null; then
-            echo ""
-            echo "💡 Found local issue branch without MR. Clean up manually:"
-            echo "   cd $worktree_path"
-            echo "   git checkout main"
-            echo "   git branch -D $issue_branch"
-        fi
-        cd - >/dev/null 2>&1 || true
+    if git branch | grep -q "$issue_branch" 2>/dev/null; then
+        echo ""
+        echo "💡 Found local issue branch without MR. Clean up manually:"
+        echo "   git checkout main"
+        echo "   git branch -D $issue_branch"
     fi
     
     exit 1
 fi
-
-# Check for epic worktree
-worktree_path="../epic-$EPIC_NAME"
-if ! git worktree list | grep -q "$worktree_path"; then
-    echo "❌ Epic worktree not found: $worktree_path"
-    echo "Nothing to clean up - worktree doesn't exist"
-    exit 1
-fi
-
-# Navigate to epic worktree
-cd "$worktree_path" || {
-    echo "❌ Failed to navigate to worktree: $worktree_path"
-    exit 1
-}
 
 # Check if issue branch exists locally
 issue_branch="issue/$ISSUE_ID"
@@ -89,8 +69,7 @@ if ! git branch | grep -q "$issue_branch"; then
     
     # Update sync state
     echo "  📊 Updating sync-state with cleanup status..."
-    if [ -f "../$sync_state_file" ]; then
-        cd - >/dev/null
+    if [ -f "$sync_state_file" ]; then
         cp "$sync_state_file" "${sync_state_file}.bak"
         yq eval ".issue_mappings.\"$ISSUE_ID\".cleanup_completed_at = \"$current_datetime\"" -i "$sync_state_file"
         yq eval ".issue_mappings.\"$ISSUE_ID\".cleanup_status = \"partial_remote_only\"" -i "$sync_state_file"
@@ -246,9 +225,6 @@ else
     echo "  ✅ Remote branch doesn't exist"
 fi
 
-# Return to original directory
-cd - >/dev/null
-
 # Update sync-state with cleanup completion
 echo "  📊 Updating sync-state with cleanup status..."
 if [ -f "$sync_state_file" ]; then
@@ -282,7 +258,6 @@ fi
 
 echo "  - Local Branch: $issue_branch (deleted)"
 echo "  - Remote Branch: $git_remote/$issue_branch (deleted)"
-echo "  - Worktree: $worktree_path (preserved)"
 
 if [ "$FORCE_FLAG" = "--force" ]; then
     echo "  - Status: Force cleanup completed at $current_datetime"

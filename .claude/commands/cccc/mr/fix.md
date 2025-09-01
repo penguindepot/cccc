@@ -17,7 +17,7 @@ These rules must be loaded and followed:
 - `.claude/rules/datetime.md` - For getting real current date/time
 - `.claude/rules/github-operations.md` - For GitHub CLI operations
 - `.claude/rules/gitlab-operations.md` - For GitLab CLI operations
-- `.claude/rules/worktree-operations.md` - For Git worktree management
+- `.claude/rules/cccc/branch-operations.md` - For branch management
 
 ## Preflight Checklist
 
@@ -156,7 +156,7 @@ EPIC_NAME_VAR=$(echo "$SCRIPT_OUTPUT" | grep "EPIC_NAME=" | cut -d'=' -f2)
 ISSUE_ID_VAR=$(echo "$SCRIPT_OUTPUT" | grep "ISSUE_ID=" | cut -d'=' -f2)
 
 # Validate critical variables were extracted
-if [ -z "$FIX_PROMPT_FILE" ] || [ -z "$WORKTREE_PATH" ] || [ -z "$ISSUE_BRANCH" ]; then
+if [ -z "$FIX_PROMPT_FILE" ] || [ -z "$ISSUE_BRANCH" ]; then
   echo "❌ Failed to extract fix information from script output"
   echo "Script output was:"
   echo "$SCRIPT_OUTPUT"
@@ -165,7 +165,7 @@ fi
 
 echo "🔧 Implementing MR fixes..."
 echo "📋 Fix ID: fix-$ISSUE_ID"
-echo "📁 Working in: $WORKTREE_PATH"
+echo "📁 Working in main repository"
 echo "🌿 Branch: $ISSUE_BRANCH"
 echo "🎯 Fixes to apply: $FIX_COUNT"
 echo ""
@@ -177,11 +177,19 @@ if [ -f "$FIX_PROMPT_FILE" ]; then
   # Launch Task agent with fix implementation prompt
   Task general-purpose "Fix MR feedback for $EPIC_NAME issue $ISSUE_ID" "$FIX_PROMPT
 
-**CRITICAL**: Work ONLY in the epic worktree: $WORKTREE_PATH
-Navigate there first: cd $WORKTREE_PATH
-Ensure you're on branch: git checkout $ISSUE_BRANCH
-Make focused commits addressing each fix with format: \"Fix #$MR_NUMBER: {specific fix}\"
-Push changes when complete."
+**CRITICAL REQUIREMENTS**:
+1. Work in the main repository
+2. Ensure you're on branch: git checkout $ISSUE_BRANCH
+3. **RESPECT FIX SCOPE**:
+   - ONLY address the specific feedback items listed above
+   - DO NOT add extra improvements beyond what reviewers requested
+   - DO NOT refactor unrelated code even if you see issues
+   - DO NOT fix problems that weren't mentioned in the review
+   - Each commit should address ONE specific feedback item
+4. Make focused commits with format: \"Fix #$MR_NUMBER: {specific fix}\"
+5. Push changes when complete
+
+**SCOPE DISCIPLINE**: Only implement the exact fixes requested. If reviewers didn't ask for it, don't change it. Stay laser-focused on the feedback provided."
 
   # After agent completes, push changes to remote
   echo ""
@@ -190,20 +198,14 @@ Push changes when complete."
   # Get git remote from config
   git_remote=$(yq '.git_remote // "origin"' .cccc/cccc-config.yml)
   
-  # Push the fixes
-  cd "$WORKTREE_PATH" || {
-    echo "❌ Failed to navigate to worktree for push"
-    exit 1
-  }
+  # Push the fixes from current repository
   
   # Check if there are new commits to push
   if git diff --quiet "$git_remote/$ISSUE_BRANCH" "$ISSUE_BRANCH" 2>/dev/null; then
     echo "📝 No new commits to push (branch up to date)"
-    cd - >/dev/null
   else
     if git push --force-with-lease "$git_remote" "$ISSUE_BRANCH" 2>/dev/null; then
       echo "✅ Successfully pushed fixes to $git_remote"
-      cd - >/dev/null
       
       # Post confirmation comment to MR
       echo "💬 Posting fix confirmation to MR..."
@@ -240,8 +242,7 @@ $(yq -r '.issue_mappings."'$ISSUE_ID_VAR'".mr_feedback.comments[] | select(.type
       
     else
       echo "⚠️ Push failed - check for conflicts or network issues"
-      echo "Manual push: cd $WORKTREE_PATH && git push --force-with-lease $git_remote $ISSUE_BRANCH"
-      cd - >/dev/null
+      echo "Manual push: git push --force-with-lease $git_remote $ISSUE_BRANCH"
       exit 1
     fi
   fi
@@ -291,7 +292,6 @@ fi
 If the MR fix fails:
 - Check error messages for specific guidance
 - Ensure MR feedback was fetched first with `/cccc:mr:update`
-- Verify worktree exists and is accessible
 - Check branch exists and can be checked out
 - Ensure you have write access to push changes
 - Verify platform CLI authentication and permissions
@@ -330,7 +330,7 @@ If the MR fix fails:
 
 🔧 Implementing MR fixes...
 📋 Fix ID: fix-001.1
-📁 Working in: ../epic-test-prd
+📁 Working in: main repository
 🌿 Branch: issue/001.1
 🎯 Fixes to apply: 2
 

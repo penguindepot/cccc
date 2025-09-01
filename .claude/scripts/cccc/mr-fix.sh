@@ -192,21 +192,31 @@ cat >> "$fix_prompt_file" << EOF
 
 ## Your Task
 
-1. Navigate to the epic worktree: cd $worktree_path
-2. Ensure you're on the correct branch: git checkout $issue_branch
-3. Address each structured fix request above
-4. Make focused commits with format: "Fix #$mr_number: {specific fix description}"
-5. Follow all coding standards from CLAUDE.md
-6. Test your fixes if applicable
+1. Ensure you're on the correct branch: git checkout $issue_branch
+2. Address each structured fix request above
+3. Make focused commits with format: "Fix #$mr_number: {specific fix description}"
+4. Follow all coding standards from CLAUDE.md
+5. Test your fixes if applicable
 
 ## Important Guidelines
 
-- Work ONLY in the epic worktree: $worktree_path
+- Work in the main repository (no worktrees)
 - Stay on the issue branch: $issue_branch
 - Make atomic commits for each fix
 - Address the reviewer feedback precisely
 - Use existing code patterns and conventions
-- Don't make unrelated changes
+
+## CRITICAL: Respect Fix Scope
+
+**You MUST stay within the boundaries of the requested fixes:**
+- ONLY address the specific feedback items listed above
+- DO NOT add extra improvements or "while I'm here" changes
+- DO NOT refactor code that isn't directly related to the fixes
+- DO NOT fix other issues you might discover
+- Each commit should address ONE specific feedback item
+- If a fix requires touching unrelated code, make minimal changes only
+
+**Fix Discipline**: Reviewers asked for specific changes. Deliver exactly those changes and nothing more. Scope creep in fixes can introduce new bugs or break other work.
 
 ## Original Issue Requirements
 

@@ -17,7 +17,7 @@ These rules must be loaded and followed:
 - `.claude/rules/datetime.md` - For getting real current date/time
 - `.claude/rules/github-operations.md` - For GitHub CLI operations
 - `.claude/rules/gitlab-operations.md` - For GitLab CLI operations
-- `.claude/rules/worktree-operations.md` - For Git worktree management
+- `.claude/rules/cccc/branch-operations.md` - For epic branch creation and management
 
 ## Preflight Checklist
 
@@ -108,4 +108,4 @@ If the sync script fails:
 3. **Platform Agnostic**: Works with both GitLab and GitHub
 4. **Cross-References**: All issue dependencies are pre-calculated and included
 5. **Atomic Operations**: Either full success or clean failure state
-6. **Development Ready**: Creates worktree for epic development
+6. **Development Ready**: Creates epic branch for development

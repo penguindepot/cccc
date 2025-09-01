@@ -29,25 +29,15 @@ issue_estimate=$(yq ".issues.\"$ISSUE_ID\".estimate_minutes" .cccc/epics/$EPIC_N
 issue_phase=$(yq ".issues.\"$ISSUE_ID\".phase" .cccc/epics/$EPIC_NAME/analysis.yaml)
 issue_body_file=$(yq ".issues.\"$ISSUE_ID\".body_file" .cccc/epics/$EPIC_NAME/analysis.yaml | tr -d '"')
 
-# Get platform issue number and MR details
+# Get platform issue number
 issue_number=$(yq ".issue_mappings.\"$ISSUE_ID\".number" .cccc/epics/$EPIC_NAME/sync-state.yaml)
 issue_url=$(yq ".issue_mappings.\"$ISSUE_ID\".url" .cccc/epics/$EPIC_NAME/sync-state.yaml | tr -d '"')
-mr_url=$(yq ".issue_mappings.\"$ISSUE_ID\".mr_url // \"\"" .cccc/epics/$EPIC_NAME/sync-state.yaml 2>/dev/null | tr -d '"')
-mr_number=$(yq ".issue_mappings.\"$ISSUE_ID\".mr_number" .cccc/epics/$EPIC_NAME/sync-state.yaml)
 
 echo "Epic: $EPIC_NAME"
 echo "Issue: #$issue_number - $issue_title"
 echo ""
 
-# Verify MR exists
-if [ -z "$mr_url" ] || [ "$mr_url" = "null" ] || [ "$mr_url" = "" ]; then
-  echo "❌ No merge request found for issue $ISSUE_ID"
-  echo "Create MR first: /cccc:issue:mr $EPIC_NAME $ISSUE_ID"
-  exit 1
-fi
-
 echo "✅ Pre-checks:"
-echo "  - MR exists: $mr_url (#$mr_number)"
 
 # Check dependencies are satisfied
 echo "  - Checking dependencies..."
@@ -79,58 +69,61 @@ else
   echo "  ✅ No dependencies required"
 fi
 
-# Check for epic worktree
-worktree_path="../epic-$EPIC_NAME"
-if ! git worktree list | grep -q "$worktree_path"; then
-  echo "❌ Epic worktree not found: $worktree_path"
-  echo "Worktree should have been created by /cccc:epic:sync"
+# Check if epic branch exists
+epic_branch="epic/$EPIC_NAME"
+if ! git branch -a | grep -q "$epic_branch"; then
+  echo "❌ Epic branch not found: $epic_branch"
+  echo "Epic branch should have been created by /cccc:epic:sync"
   exit 1
 fi
-echo "  - Worktree exists: $worktree_path"
-
-# Navigate to epic worktree
-cd "$worktree_path" || {
-  echo "❌ Failed to navigate to worktree: $worktree_path"
-  exit 1
-}
+echo "  - Epic branch exists: $epic_branch"
 
 echo ""
-echo "🔄 Updating branch..."
+echo "🔄 Creating issue branch..."
 
-# Check if issue branch exists
+# Create issue branch from epic branch
 issue_branch="issue/$ISSUE_ID"
-if ! git branch | grep -q "$issue_branch"; then
-  echo "❌ Issue branch not found: $issue_branch"
-  echo "MR exists but branch is missing. Run: /cccc:issue:mr $EPIC_NAME $ISSUE_ID"
-  exit 1
+
+# Check if issue branch already exists
+if git branch | grep -q "$issue_branch"; then
+  echo "  ⚠️  Branch already exists: $issue_branch"
+  echo "  🔄 Switching to existing branch..."
+  git checkout "$issue_branch" >/dev/null 2>&1 || {
+    echo "❌ Failed to checkout existing branch: $issue_branch"
+    exit 1
+  }
+else
+  # Fetch latest updates first
+  echo "📥 Fetching latest from $git_remote..."
+  git fetch "$git_remote" >/dev/null 2>&1 || {
+    echo "❌ Failed to fetch from remote"
+    exit 1
+  }
+  
+  # Ensure we're on the epic branch to create issue branch from it
+  echo "🔄 Checking out epic branch: $epic_branch..."
+  git checkout "$epic_branch" >/dev/null 2>&1 || {
+    echo "❌ Failed to checkout epic branch: $epic_branch"
+    exit 1
+  }
+  
+  # Pull latest epic branch changes
+  echo "📥 Pulling latest epic changes..."
+  git pull "$git_remote" "$epic_branch" >/dev/null 2>&1 || {
+    echo "❌ Failed to pull latest epic changes"
+    exit 1
+  }
+  
+  # Create and checkout issue branch
+  echo "🌟 Creating branch: $issue_branch..."
+  git checkout -b "$issue_branch" >/dev/null 2>&1 || {
+    echo "❌ Failed to create issue branch: $issue_branch"
+    exit 1
+  }
+  
+  echo "  ✅ Created branch: $issue_branch"
+  echo "  ✅ Branch based on: $epic_branch"
 fi
-echo "  ✅ Branch exists: $issue_branch"
-
-# Fetch latest and checkout issue branch
-echo "📥 Fetching latest from $git_remote..."
-git fetch "$git_remote" >/dev/null 2>&1 || {
-  echo "❌ Failed to fetch from remote"
-  exit 1
-}
-
-echo "🔄 Checking out $issue_branch..."
-git checkout "$issue_branch" >/dev/null 2>&1 || {
-  echo "❌ Failed to checkout $issue_branch"
-  exit 1
-}
-
-# Rebase issue branch on epic branch
-epic_branch="epic/$EPIC_NAME"
-echo "🔄 Rebasing $issue_branch on $epic_branch..."
-if ! git rebase "$epic_branch" >/dev/null 2>&1; then
-  echo "❌ Failed to rebase $issue_branch on $epic_branch"
-  echo "Resolve conflicts manually and try again"
-  exit 1
-fi
-echo "✅ Branch updated and ready"
-
-# Return to main repo directory for agent launch
-cd - >/dev/null
 
 echo ""
 echo "📝 Launching implementation agent..."
@@ -157,7 +150,6 @@ else
   echo "⚠️  Failed to update sync-state, restored backup"
 fi
 
-# Launch agent with Task tool
 echo ""
 echo "Agent ID: agent-$ISSUE_ID"
 echo "Task: $issue_title"
@@ -174,43 +166,49 @@ agent_prompt="You are implementing Issue #$issue_number: $issue_title
 - Epic: $EPIC_NAME
 - Issue ID: $ISSUE_ID
 - Platform Issue: #$issue_number
-- Worktree: $worktree_path
 - Branch: $issue_branch
 - Estimated time: ${issue_estimate} minutes
 
 ## Your Task
-1. Navigate to the epic worktree: cd $worktree_path
-2. Ensure you're on the correct branch: git checkout $issue_branch
-3. Read the full issue requirements from: $issue_file_path
-4. Implement the solution according to the acceptance criteria
-5. Make focused, logical commits with format: \"Issue #$issue_number: {specific change}\"
-6. Follow all coding standards and patterns from CLAUDE.md
-7. Test your implementation thoroughly
+1. Ensure you're on the correct branch: git checkout $issue_branch
+2. Read the full issue requirements from: $issue_file_path
+3. Implement the solution according to the acceptance criteria
+4. Make focused, logical commits with format: \"Issue #$issue_number: {specific change}\"
+5. Follow all coding standards and patterns from CLAUDE.md
+6. Test your implementation thoroughly
 
 ## Important Guidelines
-- Work ONLY in the epic worktree: $worktree_path
+- Work in the main repository (no worktrees)
 - Stay on the issue branch: $issue_branch
 - Make atomic, well-described commits
 - Follow the acceptance criteria exactly
 - Use existing code patterns and conventions
 - Ask clarifying questions if requirements are unclear
 
+## CRITICAL: Respect Issue Scope
+**You MUST stay within the boundaries of this specific issue:**
+- ONLY implement what is explicitly required in the acceptance criteria
+- DO NOT add extra features or \"nice-to-have\" improvements
+- DO NOT refactor code that isn't directly related to this issue
+- DO NOT fix other bugs or issues you might discover
+- If you notice other problems, mention them in comments but DO NOT fix them
+- Focus on delivering EXACTLY what issue #$issue_number requires
+
+Remember: Each issue has a specific scope for a reason. Other issues may depend on the current state of the code. Unauthorized changes can break other work in progress.
+
 ## When Complete
 - Ensure all acceptance criteria are met
 - All tests pass (if applicable)
 - Code follows project conventions
-- Ready for code review in the MR
-
-The MR already exists at: $mr_url
-Your commits will automatically appear in the MR for review.
+- Ready for MR creation with /cccc:issue:mr $EPIC_NAME $ISSUE_ID
 
 Begin implementation now."
 
 echo "🤖 Starting implementation..."
 
 # Save agent prompt to temp file for command to read
-agent_prompt_file="/tmp/mr-start-agent-prompt-$ISSUE_ID.txt"
-issue_file_temp="/tmp/mr-start-issue-file-$ISSUE_ID.txt"
+agent_prompt_file="/tmp/issue-start-agent-prompt-$ISSUE_ID.txt"
+issue_file_temp="/tmp/issue-start-issue-file-$ISSUE_ID.txt"
 
 if ! echo "$agent_prompt" > "$agent_prompt_file"; then
   echo "❌ Failed to create agent prompt file"
@@ -233,9 +231,7 @@ fi
 # Output information for the command to use (structured format)
 echo "AGENT_PROMPT_FILE=$agent_prompt_file"
 echo "ISSUE_FILE_PATH=$issue_file_path"
-echo "WORKTREE_PATH=$worktree_path"
 echo "ISSUE_BRANCH=$issue_branch"
-echo "MR_URL=$mr_url"
 echo "ISSUE_URL=$issue_url"
 echo "AGENT_LAUNCHED=$current_datetime"
 echo "EPIC_NAME=$EPIC_NAME"

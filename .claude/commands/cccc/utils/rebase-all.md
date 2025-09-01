@@ -13,17 +13,22 @@ Rebase all epic branches on main and all issue branches on their respective epic
 /utils:rebase-all <epic_name>  # Rebase only specific epic and its issues
 ```
 
+## Rules Required
+
+These rules must be loaded and followed:
+- `.claude/rules/cccc/branch-operations.md` - For branch hierarchy and rebasing strategy
+
 ## Quick Check
 
-1. **Check for worktrees:**
+1. **Check for epic branches:**
    ```bash
-   worktree_count=$(git worktree list | grep -c "epic-" || true)
-   [ "$worktree_count" -eq 0 ] && {
-     echo "❌ No epic worktrees found"
-     echo "Create worktrees using: /cccc:epic:sync <epic_name>"
+   epic_count=$(git branch -a | grep -c "epic/" || true)
+   [ "$epic_count" -eq 0 ] && {
+     echo "❌ No epic branches found"
+     echo "Create epic branches using: /cccc:epic:sync <epic_name>"
      exit 1
    }
-   echo "✅ Found $worktree_count epic worktree(s)"
+   echo "✅ Found $epic_count epic branch(es)"
    ```
 
 2. **Check git status is clean:**

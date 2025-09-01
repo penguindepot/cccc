@@ -244,21 +244,24 @@ EOF
     sed -i.bak "s|^status:.*|status: synced|" "$epic_file"
     rm -f "$epic_file.bak"
     
-    # Create development worktree
-    echo "🌿 Setting up development environment..."
+    # Create epic branch (no worktree)
+    echo "🌿 Setting up epic branch..."
     git checkout main >/dev/null 2>&1
     git pull "$git_remote" main >/dev/null 2>&1
     
-    # Create worktree for epic development
-    if [[ ! -d "../epic-$epic_name" ]]; then
-        git worktree add "../epic-$epic_name" -b "epic/$epic_name" >/dev/null 2>&1
-        cd "../epic-$epic_name"
-        git push -u "$git_remote" "epic/$epic_name" >/dev/null 2>&1
-        cd - >/dev/null
-        echo "✅ Created worktree: ../epic-$epic_name"
+    # Create epic branch in main repository
+    local epic_branch="epic/$epic_name"
+    if ! git branch | grep -q "$epic_branch"; then
+        git checkout -b "$epic_branch" >/dev/null 2>&1
+        git push -u "$git_remote" "$epic_branch" >/dev/null 2>&1
+        echo "✅ Created epic branch: $epic_branch"
     else
-        echo "⚠️ Worktree already exists: ../epic-$epic_name"
+        echo "⚠️ Epic branch already exists: $epic_branch"
+        git checkout "$epic_branch" >/dev/null 2>&1
     fi
+    
+    # Return to main branch
+    git checkout main >/dev/null 2>&1
     
     # Final summary
     local phases=$(get_stat_field "$analysis_file" "phases")
@@ -275,7 +278,7 @@ EOF
   - Issues: $issue_count individual issues created
   - Phases: $phases execution phases
   - Time Estimate: ${parallel_hours}h parallel (${speedup}x speedup)
-  - Worktree: ../epic-$epic_name
+  - Epic Branch: epic/$epic_name
 
 🔗 Cross-References:
   - All dependencies pre-calculated and included
@@ -288,7 +291,7 @@ EOF
 
 🚀 Next Steps:
   1. View epic: $epic_url
-  2. Start development: cd ../epic-$epic_name
+  2. Start development: /cccc:issue:start $epic_name <issue_id>
   3. Begin Phase 1 issues (no dependencies)
   4. Follow parallel execution plan from analysis
 

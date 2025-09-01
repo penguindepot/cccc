@@ -1,7 +1,7 @@
 ---
 created: 2025-08-27T15:01:27Z
-last_updated: 2025-08-29T04:38:41Z
-version: 2.5
+last_updated: 2025-09-01T14:25:22Z
+version: 2.6
 author: Claude Code CC System
 ---
 
@@ -44,8 +44,8 @@ cccc/
 │   ├── commands/        # Custom command definitions
 │   │   ├── cccc/        # CCCC-specific commands
 │   │   │   ├── epic/    # Epic management commands (decompose, analyze, sync, next-issue, update-status, archive)
-│   │   │   ├── issue/   # Issue management commands (update, mr)
-│   │   │   ├── mr/      # NEW: Merge request management commands (start, update, fix, cleanup)
+│   │   │   ├── issue/   # Issue management commands (update, mr, start)
+│   │   │   ├── mr/      # Merge request management commands (update, fix, cleanup)
 │   │   │   └── prd/     # PRD management commands
 │   │   ├── context/     # Context management commands (create, prime, update, validate, close)
 │   │   └── utils/       # Utility commands (push, rebase-all)
@@ -53,7 +53,7 @@ cccc/
 │   │   ├── datetime.md           # Datetime handling standards
 │   │   ├── github-operations.md # GitHub CLI patterns
 │   │   ├── gitlab-operations.md # GitLab CLI patterns  
-│   │   └── worktree-operations.md # Git worktree management
+│   │   └── branch-operations.md # Branch-based development management
 │   └── scripts/         # Automation scripts
 │       ├── cccc/        # CCCC system scripts
 │       │   ├── init.sh              # System initialization with yq installation
@@ -62,7 +62,7 @@ cccc/
 │       │   ├── epic-update-status.sh # Real-time status tracking from GitLab/GitHub
 │       │   ├── issue-update.sh      # Bidirectional issue sync with comment processing
 │       │   ├── issue-mr.sh          # Merge request creation with proper rebasing workflow
-│       │   ├── mr-start.sh          # Implementation launch with MR validation and dependency checking
+│       │   ├── issue-start.sh       # Branch-based implementation launch with validation
 │       │   ├── mr-update.sh         # MR comment fetching and feedback processing
 │       │   ├── mr-fix.sh            # MR fix implementation and automated response posting
 │       │   ├── mr-cleanup.sh        # NEW: Post-merge branch cleanup with validation and state updates
@@ -94,8 +94,8 @@ cccc/
 Houses all custom Claude Code commands organized by namespace:
 - `cccc/prd/` - PRD lifecycle management
 - `cccc/epic/` - Epic analysis, sync, and issue management
-- `cccc/issue/` - Individual issue operations and MR creation
-- `cccc/mr/` - Complete MR lifecycle: start, update, fix, cleanup workflow automation
+- `cccc/issue/` - Individual issue operations, MR creation, and branch-based implementation start
+- `cccc/mr/` - MR lifecycle: update, fix, cleanup workflow automation
 - `context/` - Context lifecycle management: create, prime, update, validate, close
 - `utils/` - Cross-cutting utility operations
 

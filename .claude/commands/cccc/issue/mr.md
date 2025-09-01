@@ -17,7 +17,7 @@ These rules must be loaded and followed:
 - `.claude/rules/datetime.md` - For getting real current date/time
 - `.claude/rules/github-operations.md` - For GitHub CLI operations
 - `.claude/rules/gitlab-operations.md` - For GitLab CLI operations
-- `.claude/rules/worktree-operations.md` - For Git worktree management and proper rebasing
+- `.claude/rules/cccc/branch-operations.md` - For branch hierarchy and rebasing
 
 ## Preflight Checklist
 
@@ -113,24 +113,23 @@ If the MR creation fails:
 - Ensure all preflight requirements are met
 - Verify platform CLI authentication and permissions
 - Check network connectivity to GitLab/GitHub
-- Ensure epic worktree exists and is accessible
+- Ensure issue branch exists (created by `/cccc:issue:start`)
 - Verify issue branches can be rebased cleanly
 
 ## Important Notes
 
-1. **Worktree Integration**: Works with existing epic worktrees created by `/cccc:epic:sync`
-2. **Proper Rebasing**: Follows worktree-operations rules - rebases epic on main, then issue on epic
+1. **Branch Integration**: Works with existing issue branches created by `/cccc:issue:start`
+2. **Proper Rebasing**: Rebases epic on main, then issue on epic in main repository
 3. **Platform Support**: Supports both GitLab (MR) and GitHub (PR) automatically
 4. **State Tracking**: Updates sync-state.yaml with MR/PR information
-5. **Branch Management**: Creates issue branches following `issue/{issue_id}` pattern
+5. **Branch Management**: Uses existing issue branches following `issue/{issue_id}` pattern
 
 ## Expected Output
 
 ```
 🔗 Creating MR for Issue 001.1...
-✅ Epic worktree found: ../epic-test-prd
+✅ Issue branch found: issue/001.1
 🔄 Rebasing epic branch on main...
-🌿 Creating/updating issue branch: issue/001.1
 🔄 Rebasing issue branch on epic...
 📤 Pushing issue branch to remote...
 🚀 Creating GitLab MR...
@@ -147,5 +146,4 @@ If the MR creation fails:
 🔗 Next Steps:
    • Review and provide feedback on the MR
    • Merge when ready
-   • Continue work in epic worktree: ../epic-test-prd
 ```

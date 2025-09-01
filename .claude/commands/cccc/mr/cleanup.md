@@ -22,7 +22,7 @@ These rules must be loaded and followed:
 - `.claude/rules/datetime.md` - For getting real current date/time
 - `.claude/rules/github-operations.md` - For GitHub CLI operations
 - `.claude/rules/gitlab-operations.md` - For GitLab CLI operations
-- `.claude/rules/worktree-operations.md` - For Git worktree management
+- `.claude/rules/cccc/branch-operations.md` - For branch cleanup procedures
 
 ## Preflight Checklist
 
@@ -138,7 +138,7 @@ if echo "$SCRIPT_OUTPUT" | grep -q "CLEANUP_COMPLETED=true"; then
   echo "$CLEANUP_SUMMARY"
   echo ""
   echo "💡 Branch and remote cleanup finished."
-  echo "   Epic worktree is still available for other issues."
+  echo "   Epic branch is still available for other issues."
 else
   echo ""
   echo "❌ Cleanup failed or was skipped"
@@ -152,7 +152,6 @@ fi
 If the MR cleanup fails:
 - Check that the MR is actually merged on the platform
 - Verify you have permissions to delete remote branches
-- Ensure the worktree exists and is accessible
 - Check that the issue branch exists locally
 - Verify platform CLI authentication and permissions
 - Use `--force` flag only if you're certain it's safe
@@ -160,7 +159,7 @@ If the MR cleanup fails:
 ## Important Notes
 
 1. **Safety First**: By default, verifies MR is merged before any deletion
-2. **Worktree Preserved**: Epic worktree remains intact for other issues
+2. **Epic Branch Preserved**: Epic branch remains intact for other issues
 3. **Sync State Updated**: Marks issue as cleaned up with timestamp
 4. **Remote Cleanup**: Attempts to delete remote branch if it exists
 5. **Force Override**: `--force` flag bypasses merge verification (use carefully)
@@ -183,7 +182,6 @@ If the MR cleanup fails:
   - MR: #2 (merged on 2024-08-28T10:30:00Z)
   - Local Branch: issue/001.1 (deleted)
   - Remote Branch: origin/issue/001.1 (deleted)
-  - Worktree: ../epic-test-prd (preserved)
   - Status: Cleanup completed at 2024-08-28T10:35:00Z
 
 💡 Branch and remote cleanup finished.
@@ -222,6 +220,5 @@ If the MR cleanup fails:
   - MR: #2 (status unknown - forced cleanup)
   - Local Branch: issue/001.1 (deleted)
   - Remote Branch: origin/issue/001.1 (deleted)
-  - Worktree: ../epic-test-prd (preserved)
   - Status: Force cleanup completed at 2024-08-28T10:35:00Z
 ```

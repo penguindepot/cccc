@@ -32,24 +32,27 @@ fi
 echo "🔧 Using remote: $git_remote"
 echo ""
 
-# Discover worktrees
+# Save current branch to return to it later
+current_branch=$(git rev-parse --abbrev-ref HEAD)
+
+# Discover epic branches
 if [ -n "$EPIC_FILTER" ]; then
-  # Check if specific epic worktree exists
-  if [ ! -d "../epic-$EPIC_FILTER" ]; then
-    echo "❌ Epic worktree not found: ../epic-$EPIC_FILTER"
+  # Check if specific epic branch exists
+  if ! git branch -a | grep -q "epic/$EPIC_FILTER"; then
+    echo "❌ Epic branch not found: epic/$EPIC_FILTER"
     exit 1
   fi
-  worktrees=("../epic-$EPIC_FILTER")
+  epic_branches=("epic/$EPIC_FILTER")
   echo "🎯 Targeting specific epic: $EPIC_FILTER"
 else
-  # Find all epic worktrees
-  worktrees=($(ls -d ../epic-* 2>/dev/null | sort))
-  if [ ${#worktrees[@]} -eq 0 ]; then
-    echo "❌ No epic worktrees found"
-    echo "Create worktrees using: /cccc:epic:sync <epic_name>"
+  # Find all epic branches
+  epic_branches=($(git branch -a | grep "epic/" | sed 's/^[* ]*//' | sed 's/^remotes\/[^\/]*\///' | sort -u))
+  if [ ${#epic_branches[@]} -eq 0 ]; then
+    echo "❌ No epic branches found"
+    echo "Create epic branches using: /cccc:epic:sync <epic_name>"
     exit 1
   fi
-  echo "📁 Found ${#worktrees[@]} epic worktree(s)"
+  echo "📁 Found ${#epic_branches[@]} epic branch(es)"
 fi
 
 echo ""
@@ -65,19 +68,9 @@ conflict_list=()
 echo "Phase 1: Rebasing epic branches on main"
 echo "========================================"
 
-for worktree_path in "${worktrees[@]}"; do
-  epic_name=$(basename "$worktree_path" | sed 's/^epic-//')
-  epic_branch="epic/$epic_name"
+for epic_branch in "${epic_branches[@]}"; do
+  epic_name=$(echo "$epic_branch" | sed 's/^epic\///')
   echo "Epic $epic_name:"
-  
-  # Navigate to worktree
-  if ! cd "$worktree_path" 2>/dev/null; then
-    echo "  ❌ Cannot access worktree: $worktree_path"
-    ((epic_conflicts++))
-    conflict_list+=("$epic_name: worktree inaccessible")
-    cd - >/dev/null 2>&1
-    continue
-  fi
   
   # Fetch latest
   echo "  📥 Fetching latest from $git_remote..."
@@ -86,11 +79,27 @@ for worktree_path in "${worktrees[@]}"; do
       echo "  ❌ Failed to fetch from remote"
       ((epic_conflicts++))
       conflict_list+=("$epic_name: fetch failed")
-      cd - >/dev/null 2>&1
       continue
     fi
   else
     echo "  🔍 [DRY RUN] Would fetch from $git_remote"
+  fi
+  
+  # Check if epic branch exists locally
+  if ! git show-ref --verify --quiet "refs/heads/$epic_branch"; then
+    echo "  ⚠️  Epic branch exists only on remote, checking out..."
+    if [ -z "$DRY_RUN" ]; then
+      git checkout -b "$epic_branch" "$git_remote/$epic_branch" >/dev/null 2>&1
+    else
+      echo "  🔍 [DRY RUN] Would checkout remote branch"
+    fi
+  fi
+  
+  # Checkout epic branch
+  if [ -z "$DRY_RUN" ]; then
+    git checkout "$epic_branch" >/dev/null 2>&1
+  else
+    echo "  🔍 [DRY RUN] Would checkout $epic_branch"
   fi
   
   # Pull latest epic branch from remote to get any merged changes
@@ -110,29 +119,12 @@ for worktree_path in "${worktrees[@]}"; do
     echo "  🔍 [DRY RUN] Would pull $epic_branch from $git_remote"
   fi
   
-  # Check if epic branch exists
-  if ! git show-ref --verify --quiet "refs/heads/$epic_branch"; then
-    echo "  ❌ Epic branch not found: $epic_branch"
-    ((epic_conflicts++))
-    conflict_list+=("$epic_name: epic branch missing")
-    cd - >/dev/null 2>&1
-    continue
-  fi
-  
-  # Checkout epic branch
-  if [ -z "$DRY_RUN" ]; then
-    git checkout "$epic_branch" >/dev/null 2>&1
-  else
-    echo "  🔍 [DRY RUN] Would checkout $epic_branch"
-  fi
-  
   # Check if rebase is needed
   if [ -z "$DRY_RUN" ]; then
     behind_count=$(git rev-list --count HEAD.."$git_remote/main" 2>/dev/null || echo "unknown")
     if [ "$behind_count" = "0" ]; then
       echo "  ✅ $epic_branch already up to date"
       ((epic_success++))
-      cd - >/dev/null 2>&1
       continue
     elif [ "$behind_count" = "unknown" ]; then
       echo "  ⚠️  Cannot determine if rebase needed"
@@ -149,30 +141,15 @@ for worktree_path in "${worktrees[@]}"; do
     if git rebase "$git_remote/main" >/dev/null 2>&1; then
       echo "  ✅ $epic_branch rebased successfully"
       
-      # Verify we're not losing commits before pushing
-      local_commits=$(git rev-list --count "$git_remote/$epic_branch".."$epic_branch" 2>/dev/null || echo "0")
-      if [ "$local_commits" -gt 0 ]; then
-        echo "  📊 Local branch has $local_commits new commit(s) to push"
-      fi
-      
-      # Check if remote has commits we don't have (safety check)
-      remote_commits=$(git rev-list --count "$epic_branch".."$git_remote/$epic_branch" 2>/dev/null || echo "0")
-      if [ "$remote_commits" -gt 0 ]; then
-        echo "  ⚠️  WARNING: Remote has $remote_commits commit(s) not in local"
-        echo "  💡 This should not happen after pull - skipping push for safety"
-        ((epic_conflicts++))
-        conflict_list+=("$epic_name: remote has unpulled commits")
+      # Push with force-with-lease
+      echo "  📤 Pushing with --force-with-lease..."
+      if git push --force-with-lease "$git_remote" "$epic_branch" >/dev/null 2>&1; then
+        echo "  ✅ Pushed successfully"
+        ((epic_success++))
       else
-        # Push with force-with-lease
-        echo "  📤 Pushing with --force-with-lease..."
-        if git push --force-with-lease "$git_remote" "$epic_branch" >/dev/null 2>&1; then
-          echo "  ✅ Pushed successfully"
-          ((epic_success++))
-        else
-          echo "  ❌ Push failed"
-          ((epic_conflicts++))
-          conflict_list+=("$epic_name: push failed after rebase")
-        fi
+        echo "  ❌ Push failed"
+        ((epic_conflicts++))
+        conflict_list+=("$epic_name: push failed after rebase")
       fi
     else
       echo "  ❌ Rebase failed - conflicts detected"
@@ -185,8 +162,6 @@ for worktree_path in "${worktrees[@]}"; do
     echo "  🔍 [DRY RUN] Would push with --force-with-lease"
     ((epic_success++))
   fi
-  
-  cd - >/dev/null 2>&1
 done
 
 echo ""
@@ -195,32 +170,52 @@ echo ""
 echo "Phase 2: Rebasing issue branches on epics"
 echo "=========================================="
 
-for worktree_path in "${worktrees[@]}"; do
-  epic_name=$(basename "$worktree_path" | sed 's/^epic-//')
+for epic_branch in "${epic_branches[@]}"; do
+  epic_name=$(echo "$epic_branch" | sed 's/^epic\///')
   echo "Epic $epic_name:"
   
-  # Navigate to worktree
-  if ! cd "$worktree_path" 2>/dev/null; then
-    echo "  ❌ Cannot access worktree: $worktree_path"
-    cd - >/dev/null 2>&1
+  # Find all issue branches (both local and remote)
+  issue_branches=($(git branch -a | grep "issue/" | sed 's/^[* ]*//' | sed 's/^remotes\/[^\/]*\///' | sort -u))
+  
+  # Filter issue branches that belong to this epic (based on analysis.yaml if it exists)
+  epic_issue_branches=()
+  if [ -f ".cccc/epics/$epic_name/analysis.yaml" ]; then
+    # Get issue IDs from analysis.yaml
+    issue_ids=$(yq '.issues | keys | .[]' ".cccc/epics/$epic_name/analysis.yaml" 2>/dev/null | tr -d '"')
+    for issue_id in $issue_ids; do
+      issue_branch="issue/$issue_id"
+      # Check if this issue branch exists
+      for branch in "${issue_branches[@]}"; do
+        if [ "$branch" = "$issue_branch" ]; then
+          epic_issue_branches+=("$issue_branch")
+        fi
+      done
+    done
+  else
+    # If no analysis.yaml, we can't determine which issues belong to which epic
+    echo "  ⚠️  No analysis.yaml found, skipping issue branches for $epic_name"
     continue
   fi
   
-  # Find all issue branches
-  issue_branches=($(git branch | grep "issue/" | sed 's/^[* ] //' | sort))
-  
-  if [ ${#issue_branches[@]} -eq 0 ]; then
-    echo "  📝 No issue branches found"
-    cd - >/dev/null 2>&1
+  if [ ${#epic_issue_branches[@]} -eq 0 ]; then
+    echo "  📝 No issue branches found for this epic"
     continue
   fi
   
-  echo "  📋 Found ${#issue_branches[@]} issue branch(es)"
+  echo "  📋 Found ${#epic_issue_branches[@]} issue branch(es)"
   
-  epic_branch="epic/$epic_name"
-  
-  for issue_branch in "${issue_branches[@]}"; do
+  for issue_branch in "${epic_issue_branches[@]}"; do
     echo "  🌿 Processing $issue_branch..."
+    
+    # Check if issue branch exists locally
+    if ! git show-ref --verify --quiet "refs/heads/$issue_branch"; then
+      echo "    ⚠️  Issue branch exists only on remote, checking out..."
+      if [ -z "$DRY_RUN" ]; then
+        git checkout -b "$issue_branch" "$git_remote/$issue_branch" >/dev/null 2>&1
+      else
+        echo "    🔍 [DRY RUN] Would checkout remote branch"
+      fi
+    fi
     
     # Checkout issue branch
     if [ -z "$DRY_RUN" ]; then
@@ -278,9 +273,12 @@ for worktree_path in "${worktrees[@]}"; do
       ((issue_success++))
     fi
   done
-  
-  cd - >/dev/null 2>&1
 done
+
+# Return to original branch
+if [ -z "$DRY_RUN" ]; then
+  git checkout "$current_branch" >/dev/null 2>&1
+fi
 
 echo ""
 

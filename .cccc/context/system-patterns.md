@@ -1,13 +1,21 @@
 ---
 created: 2025-08-27T15:01:27Z
-last_updated: 2025-08-28T15:38:00Z
-version: 2.3
+last_updated: 2025-09-01T14:25:22Z
+version: 3.0
 author: Claude Code CC System
 ---
 
 # System Patterns
 
 ## Architectural Patterns
+
+### Branch-Based Development Pattern (New Architecture)
+**Major System Evolution**: Transitioned from complex worktree-based to streamlined branch-based development:
+- **Direct Branch Operations**: Issues implement directly on branches without worktree complexity
+- **Simplified Workflow**: issue:start command replaces mr:start for immediate branch-based development
+- **Reduced Overhead**: Eliminated worktree orchestration while maintaining all core functionality
+- **Enhanced Maintainability**: Simpler codebase with branch-operations.md replacing worktree-operations.md
+- **Benefits**: Faster development cycle, reduced system complexity, easier maintenance
 
 ### Command-Based Architecture
 The system implements a command pattern where each operation is:
@@ -99,13 +107,13 @@ author: System identifier
 - **Audit Trail**: Preserve complete history on platform while keeping local files current
 - **Benefits**: Seamless collaboration without losing local development efficiency
 
-### Complete Development Workflow Pattern (New)
-- **MR Prerequisites**: Validate existing merge request, branch structure, and dependency satisfaction
-- **Implementation Launch**: Navigate to epic worktree and launch specialized development agents
+### Complete Development Workflow Pattern (Updated for Branch-Based)
+- **Branch-Based Implementation**: Direct issue implementation on branches without worktree complexity
+- **Implementation Launch**: cccc:issue:start creates branch and launches specialized development agents
 - **State Tracking**: Record work initiation timestamp and implementation progress
 - **Agent Integration**: Use specialized sub-agents for focused development work
-- **Workflow Sequencing**: Enforce proper sequence - epic:sync → issue:mr → mr:start → implementation
-- **Benefits**: Structured development process with validation and agent-assisted implementation
+- **Workflow Sequencing**: Simplified sequence - epic:sync → issue:start → development → mr workflow
+- **Benefits**: Streamlined development process with reduced complexity and faster iteration
 
 ### Git-Aware Operations
 - **Integration**: Commands check git status for context freshness
@@ -148,11 +156,11 @@ Query API → Compare States → Update sync-state.yaml → Track Completions �
 ```
 **API Integration**: Supports both GitLab and GitHub with graceful error handling and backup management.
 
-### Implementation Launch Flow (New)
+### Implementation Launch Flow (Updated for Branch-Based)
 ```
-Validate Issue → Check MR Exists → Verify Dependencies → Navigate Worktree → Launch Agent → Update Work State → Provide Guidance
+Validate Issue → Check Dependencies → Create Branch → Setup Environment → Launch Agent → Update Work State → Provide Guidance
 ```
-**Key Features**: Complete prerequisite validation, MR existence verification, dependency satisfaction checking, agent-based implementation support.
+**Key Features**: Complete prerequisite validation, dependency satisfaction checking, direct branch creation, simplified environment setup, agent-based implementation support.
 
 ### MR Review Feedback Flow (Completed)
 ```
@@ -167,11 +175,11 @@ Fetch Issue + Comments → Process Structured Updates → Update Local File → 
 ```
 **Key Features**: Structured comment parsing (/update commands), feedback attribution, collaborative refinement, platform audit trails.
 
-### Merge Request Workflow Pattern (New)
+### Merge Request Workflow Pattern (Updated for Branch-Based)
 ```
-Validate Issue → Check Worktree → Rebase Epic on Main → Push Epic → Create/Rebase Issue Branch → Push Issue → Create MR/PR → Update State
+Validate Issue → Create/Switch Branch → Rebase on Main → Implement Changes → Push Branch → Create MR/PR → Update State
 ```
-**Key Features**: Proper rebasing hierarchy (epic on main, issue on epic), force-with-lease safety, MR tracking in sync-state.yaml, platform integration.
+**Key Features**: Simplified branch-based workflow, direct main branch integration, force-with-lease safety, MR tracking in sync-state.yaml, platform integration.
 
 ### Branch Hierarchy Maintenance Pattern (Enhanced)
 ```
@@ -179,11 +187,11 @@ Discover Worktrees → Fetch Updates → Pull Epic Remote State → Phase 1: Reb
 ```
 **Key Features**: **Pull-before-rebase safety** (NEW), commit loss prevention with safety checks, automated branch maintenance, conflict detection and reporting, selective targeting, dry-run capability, comprehensive statistics.
 
-### Implementation Launch Pattern (New)
+### Implementation Launch Pattern (Updated for Branch-Based)
 ```
-Validate MR Exists → Check Dependencies → Navigate Worktree → Launch Agent → Track Work Start → Provide Implementation Guidance
+Validate Issue → Check Dependencies → Create Branch → Setup Environment → Launch Agent → Track Work Start → Provide Implementation Guidance
 ```
-**Key Features**: MR prerequisite validation, dependency satisfaction checking, worktree navigation, agent-based development, work tracking.
+**Key Features**: Issue prerequisite validation, dependency satisfaction checking, direct branch creation, simplified environment setup, agent-based development, work tracking.
 
 ### Command Execution Flow
 ```

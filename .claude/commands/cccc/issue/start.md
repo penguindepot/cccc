@@ -2,13 +2,13 @@
 allowed-tools: Bash, Read, Write, LS, Task
 ---
 
-# cccc:mr:start
+# cccc:issue:start
 
-Start implementation work on an existing merge request by launching an agent to complete the issue requirements.
+Start implementation work on an issue by creating the issue branch and launching an agent to complete the requirements. This combines the functionality of creating branches and starting implementation work.
 
 ## Usage
 ```
-/cccc:mr:start <epic_name> <issue_id>
+/cccc:issue:start <epic_name> <issue_id>
 ```
 
 ## Rules Required
@@ -17,7 +17,7 @@ These rules must be loaded and followed:
 - `.claude/rules/datetime.md` - For getting real current date/time
 - `.claude/rules/github-operations.md` - For GitHub CLI operations
 - `.claude/rules/gitlab-operations.md` - For GitLab CLI operations
-- `.claude/rules/worktree-operations.md` - For Git worktree management
+- `.claude/rules/cccc/branch-operations.md` - For branch hierarchy and management
 
 ## Preflight Checklist
 
@@ -77,22 +77,7 @@ yq ".issues.\"$ISSUE_ID\"" .cccc/epics/$EPIC_NAME/analysis.yaml >/dev/null 2>&1 
 echo "✅ Epic and issue validated"
 ```
 
-### 3. MR Existence Check
-```bash
-# Check if MR exists for this issue
-mr_url=$(yq ".issue_mappings.\"$ISSUE_ID\".mr_url" .cccc/epics/$EPIC_NAME/sync-state.yaml 2>/dev/null | tr -d '"')
-mr_number=$(yq ".issue_mappings.\"$ISSUE_ID\".mr_number" .cccc/epics/$EPIC_NAME/sync-state.yaml 2>/dev/null)
-
-if [ -z "$mr_url" ] || [ "$mr_url" = "null" ]; then
-  echo "❌ No merge request found for issue $ISSUE_ID"
-  echo "Create MR first: /cccc:issue:mr $EPIC_NAME $ISSUE_ID"
-  exit 1
-fi
-
-echo "✅ MR exists: $mr_url (#$mr_number)"
-```
-
-### 4. Platform CLI Validation
+### 3. Platform CLI Validation
 ```bash
 # Get platform from config
 git_platform=$(yq '.git_platform // "gitlab"' .cccc/cccc-config.yml)
@@ -115,10 +100,10 @@ echo "✅ Platform CLI validated ($git_platform)"
 
 ## Instructions
 
-### Execute MR Start Implementation
+### Execute Issue Start Implementation
 ```bash
-# Call the dedicated mr-start script with all the complex logic
-SCRIPT_OUTPUT=$(.claude/scripts/cccc/mr-start.sh "$EPIC_NAME" "$ISSUE_ID")
+# Call the dedicated issue-start script with all the complex logic
+SCRIPT_OUTPUT=$(.claude/scripts/cccc/issue-start.sh "$EPIC_NAME" "$ISSUE_ID")
 
 if [ $? -ne 0 ]; then
   echo "$SCRIPT_OUTPUT"
@@ -128,16 +113,14 @@ fi
 # Extract agent information from script output
 AGENT_PROMPT_FILE=$(echo "$SCRIPT_OUTPUT" | grep "AGENT_PROMPT_FILE=" | cut -d'=' -f2)
 ISSUE_FILE_PATH=$(echo "$SCRIPT_OUTPUT" | grep "ISSUE_FILE_PATH=" | cut -d'=' -f2)
-WORKTREE_PATH=$(echo "$SCRIPT_OUTPUT" | grep "WORKTREE_PATH=" | cut -d'=' -f2)
 ISSUE_BRANCH=$(echo "$SCRIPT_OUTPUT" | grep "ISSUE_BRANCH=" | cut -d'=' -f2)
-MR_URL=$(echo "$SCRIPT_OUTPUT" | grep "MR_URL=" | cut -d'=' -f2)
 ISSUE_URL=$(echo "$SCRIPT_OUTPUT" | grep "ISSUE_URL=" | cut -d'=' -f2)
 AGENT_LAUNCHED=$(echo "$SCRIPT_OUTPUT" | grep "AGENT_LAUNCHED=" | cut -d'=' -f2)
 EPIC_NAME_VAR=$(echo "$SCRIPT_OUTPUT" | grep "EPIC_NAME=" | cut -d'=' -f2)
 ISSUE_ID_VAR=$(echo "$SCRIPT_OUTPUT" | grep "ISSUE_ID=" | cut -d'=' -f2)
 
 # Validate critical variables were extracted
-if [ -z "$AGENT_PROMPT_FILE" ] || [ -z "$WORKTREE_PATH" ] || [ -z "$ISSUE_BRANCH" ]; then
+if [ -z "$AGENT_PROMPT_FILE" ] || [ -z "$ISSUE_BRANCH" ]; then
   echo "❌ Failed to extract agent information from script output"
   echo "Script output was:"
   echo "$SCRIPT_OUTPUT"
@@ -151,7 +134,7 @@ if [ -f "$AGENT_PROMPT_FILE" ]; then
   
   echo "🚀 Launching implementation agent..."
   echo "📋 Agent ID: agent-$ISSUE_ID"
-  echo "📁 Working in: $WORKTREE_PATH"
+  echo "📁 Working in main repository"
   echo "🌿 Branch: $ISSUE_BRANCH"
   echo ""
   
@@ -161,10 +144,19 @@ if [ -f "$AGENT_PROMPT_FILE" ]; then
 Issue Requirements:
 $ISSUE_CONTENT
 
-**CRITICAL**: Work ONLY in the epic worktree: $WORKTREE_PATH
-Navigate there first: cd $WORKTREE_PATH
-Ensure you're on branch: git checkout $ISSUE_BRANCH
-Make commits and push them to complete the implementation."
+**CRITICAL REQUIREMENTS**:
+1. Work in the main repository
+2. Ensure you're on the correct branch: git checkout $ISSUE_BRANCH
+3. **RESPECT ISSUE SCOPE**: 
+   - ONLY implement what is specified in the issue requirements
+   - DO NOT add extra features or improvements outside the issue scope
+   - DO NOT refactor unrelated code
+   - DO NOT fix other issues you notice (create separate issues instead)
+   - If you notice other problems, document them but DO NOT fix them
+4. Make focused commits that relate directly to this issue
+5. Push changes when implementation is complete
+
+**SCOPE DISCIPLINE**: Stay within the boundaries of issue $ISSUE_ID. Quality over quantity - a focused, complete implementation is better than scope creep."
 
   # After agent completes, push changes to remote
   echo ""
@@ -172,12 +164,6 @@ Make commits and push them to complete the implementation."
   
   # Get git remote from config
   git_remote=$(yq '.git_remote // "origin"' .cccc/cccc-config.yml)
-  
-  # Push the implementation
-  cd "$WORKTREE_PATH" || {
-    echo "❌ Failed to navigate to worktree for push"
-    exit 1
-  }
   
   # Check if there are new commits to push
   if git diff --quiet "$git_remote/$ISSUE_BRANCH" "$ISSUE_BRANCH" 2>/dev/null; then
@@ -187,13 +173,10 @@ Make commits and push them to complete the implementation."
       echo "✅ Successfully pushed $ISSUE_BRANCH to $git_remote"
     else
       echo "⚠️  Push failed - check for conflicts or network issues"
-      echo "Manual push: cd $WORKTREE_PATH && git push --force-with-lease $git_remote $ISSUE_BRANCH"
-      cd - >/dev/null
+      echo "Manual push: git push --force-with-lease $git_remote $ISSUE_BRANCH"
       exit 1
     fi
   fi
-  
-  cd - >/dev/null
   
   # Update sync-state with completion status
   echo "📊 Updating sync-state with completion..."
@@ -215,20 +198,19 @@ Make commits and push them to complete the implementation."
   fi
   
   # Clean up temp files
-  rm -f "$AGENT_PROMPT_FILE" "/tmp/mr-start-issue-file-$ISSUE_ID.txt"
+  rm -f "$AGENT_PROMPT_FILE" "/tmp/issue-start-issue-file-$ISSUE_ID.txt"
   
   echo ""
   echo "🎉 Implementation Complete!"
   echo "🔗 Track progress:"
-  echo "  - MR: $MR_URL"
   echo "  - Issue: $ISSUE_URL"
   echo "  - Branch: $ISSUE_BRANCH"
   echo "  - Status: agent_completed ($AGENT_LAUNCHED)"
   echo ""
   echo "💡 Next Steps:"
-  echo "  - Review the MR for implemented changes"
-  echo "  - Test the implementation if needed"
-  echo "  - Merge when satisfied with the work"
+  echo "  - Create MR/PR: /cccc:issue:mr $EPIC_NAME_VAR $ISSUE_ID_VAR"
+  echo "  - Review the implementation"
+  echo "  - Test the changes if needed"
   
 else
   echo "❌ Failed to prepare agent prompt"
@@ -238,19 +220,18 @@ fi
 
 ## Error Handling
 
-If the MR start fails:
+If the issue start fails:
 - Check error messages for specific guidance
-- Ensure MR was created first with `/cccc:issue:mr`
-- Verify worktree exists and is accessible
-- Check branch exists and can be checked out
-- Ensure dependencies are satisfied before starting work
+- Ensure epic has been synced with `/cccc:epic:sync`
+- Verify dependencies are satisfied before starting work
+- Check that issue exists in analysis.yaml
 
 ## Important Notes
 
-1. **MR Must Exist**: This command requires an MR created by `/cccc:issue:mr`
+1. **No MR Required**: This command creates the branch and starts work without needing an existing MR
 2. **Real Agent Execution**: Actually launches a Task agent for implementation (no simulation)
 3. **Dependency Checking**: Validates all dependencies are completed before starting
-4. **Branch Management**: Uses existing issue branch, rebases and updates automatically
+4. **Branch Creation**: Creates issue branch from epic branch automatically
 5. **Automatic Push**: Pushes implementation changes to remote after agent completes
 6. **Progress Tracking**: Updates sync-state.yaml with work status and agent launch time
 
@@ -262,17 +243,16 @@ Epic: test-prd
 Issue: #35 - Create validation script framework
 
 ✅ Pre-checks:
-  - MR exists: https://gitlab.com/.../merge_requests/2 (#2)
   - Dependencies satisfied: No dependencies required
-  - Worktree exists: ../epic-test-prd
+  - Epic branch exists: epic/test-prd
 
-🔄 Updating branch...
-  ✅ Branch exists: issue/001.1
-  ✅ Rebased on epic/test-prd
+🔄 Creating issue branch...
+  ✅ Created branch: issue/001.1
+  ✅ Branch based on: epic/test-prd
 
 🚀 Launching implementation agent...
 📋 Agent ID: agent-001.1
-📁 Working in: ../epic-test-prd
+📁 Working in main repository
 🌿 Branch: issue/001.1
 
 [Agent implements the solution...]
@@ -282,13 +262,12 @@ Issue: #35 - Create validation script framework
 
 🎉 Implementation Complete!
 🔗 Track progress:
-  - MR: https://gitlab.com/.../merge_requests/2
   - Issue: https://gitlab.com/.../issues/35
   - Branch: issue/001.1
-  - Status: agent_completed (2025-08-28T07:04:02Z)
+  - Status: agent_completed (2025-09-01T07:04:02Z)
 
 💡 Next Steps:
-  - Review the MR for implemented changes
-  - Test the implementation if needed
-  - Merge when satisfied with the work
+  - Create MR/PR: /cccc:issue:mr test-prd 001.1
+  - Review the implementation
+  - Test the changes if needed
 ```
